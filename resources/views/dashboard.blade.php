@@ -42,7 +42,7 @@
 
                         <div class="col-12">
                             <div class="dropdown" >
-                                <a class="btn btn-outline-dark" href="{{ route('cart.index') }}">
+                                <a class="btn btn-outline-dark" href="{{ route('movieCart') }}">
                                     <i class="fa fa-shopping-cart" aria-hidden="true"></i> Cart <span class="badge text-bg-danger" id="cart-quantity">0</span>
                                 </a>
                             </div>

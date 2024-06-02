@@ -24,7 +24,17 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::resource('/admin/dashboard/products', ProductController::class);  // Menambahkan resource untuk ProductController
-Route::resource('cart', CartController::class);
+// Route::resource('cart', CartController::class);
+Route::get('cart', [ProductController::class, 'movieCart'])->name('movieCart');
+
+// Route::get('/movies-list', [MovieController::class, 'index']);  
+Route::get('/product-list', [ProductController::class, 'index']);  
+// Route::get('/cart-list', [MovieController::class, 'movieCart']);
+Route::get('/cart-list-product', [ProductController::class, 'movieCart']);
+// Route::post('add-to-cart', [MovieController::class, 'addMovieToCart'])->name('add-movie-to-shopping-cart');
+Route::post('add-to-cart-product', [ProductController::class, 'addProductToCart'])->name('add-to-cart');
+// Route::delete('/delete-cart-item', [MovieController::class, 'deleteItem'])->name('delete.cart.item');
+Route::post('checkout', [ProductController::class, 'checkout'])->name('checkout');
 
 require __DIR__.'/auth.php';
 

@@ -8,7 +8,7 @@
     <!--TailwindCSS-->
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
     <!--custom CSS-->
-    <link rel="stylesheet" href="./assets/css/main.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <!--Body wrapper--> 
@@ -115,25 +115,38 @@
         <!--page content-->
         <div class="absolute top-20 pr-8 left-0 lg:left-80 z-0 px-4 h-full w-full md:w-4/5">
             <!-- overview -->
-            <div class="flex flex-col lg:flex-row lg:justify-between gap-4 w-full">
+            <div class="flex flex-col lg:flex-row lg:justify-between w-full">
                 <div class="w-full lg:w-1/2 mt-5 lg:pl-0 mb-20 lg:mb-0">
-                    <div class="flex flex-col items-center lg:items-start w-full">
-                        <div class="font-['MyCustomFont-Bold'] w-full">
-                            @forelse($cartItems as $cartItem)
-                                <div class="flex flex-col lg:flex-row items-center shadow-lg rounded-lg overflow-hidden bg-white mt-6 p-4 lg:p-6 w-full">
-                                    <img src="{{ asset('storage/' . $cartItem->products->image) }}" class="w-40 h-40 object-cover rounded-md mx-auto lg:mx-0 lg:mr-6">
-                                    <div class="flex flex-col justify-between w-full lg:w-auto mt-4 lg:mt-0">
-                                        <p class="text-xl font-semibold">Nama Produk: {{ $cartItem->products->name }}</p>
-                                        <p class="text-lg text-gray-600 mt-2">Harga: Rp {{ number_format($cartItem->products->price, 0, ',', '.') }}</p>
-                                        <div class="flex items-center mt-4">
-                                            <label for="quantity_{{ $cartItem->id }}" class="mr-2 text-gray-700">Quantity:</label>
-                                            <input id="quantity_{{ $cartItem->id }}" type="number" value="{{ $cartItem->quantity }}" class="w-20 px-2 py-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="flex flex-col items-center lg:items-start">
+                        <div class="font-['MyCustomFont-Bold'] w-full h-96 overflow-y-auto">
+                            <form id="checkout-form" enctype="multipart/form-data">
+                                @csrf
+                                @forelse($groupedCartItems as $groupedCartItem)
+                                    <div class="product-item" data-product-id="{{$groupedCartItem['product']->id}}">
+                                        <p hidden>{{$groupedCartItem['product']->id}}</p>
+                                        <div class="flex flex-row items-center gap-4 mb-4">
+                                            <img src="{{ asset('storage/'.$groupedCartItem['product']->image) }}" data-product-image="{{$groupedCartItem['product']->image}}" class="w-32 h-32 object-cover">
+                                            <div class="flex flex-col">
+                                                <p data-product-name="{{$groupedCartItem['product']->name}}">Nama Produk: {{ $groupedCartItem['product']->name }}</p>
+                                                <p data-product-price="{{$groupedCartItem['product']->price}}">Harga: {{ $groupedCartItem['product']->price }}</p>
+                                            </div>
+                                            <div class="ml-auto">
+                                                <label for="input" class="block">Quantity:</label>
+                                                <input type="number" value="{{ $groupedCartItem['quantity'] }}" data-product-qty="{{$groupedCartItem['quantity']}}" class="h-9 w-24 border rounded px-2">
+                                            </div>
                                         </div>
+                                        <p hidden>{{ Auth::user()->id }}</p>
                                     </div>
-                                </div>
-                            @empty
-                                <p class="text-center text-gray-500 w-full mt-10">Tidak ada produk dalam keranjang.</p>
-                            @endforelse
+                                @empty
+                                    <p>Keranjang Anda kosong</p>
+                                @endforelse
+                            
+                                @if(!empty($groupedCartItems))
+                                    <div class="mt-4">
+                                        <button type="button" id="checkout" class="px-4 py-2 bg-blue-500 text-white rounded">Checkout</button>
+                                    </div>
+                                @endif
+                            </form>                            
                         </div>
                     </div>
                 </div>
@@ -149,5 +162,70 @@
 
     <!--Scripts-->
     <script src="./assets/js/app.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#checkout").click(function (e) {
+                e.preventDefault();
+
+                console.log("Checkout button clicked");
+
+                let products = [];
+                let grandTotal = 0; // Inisialisasi grand total
+
+                $(".product-item").each(function() {
+                    let productId = $(this).data("product-id");
+                    let productImg = $(this).find("img").data("product-image");
+                    let productName = $(this).find("[data-product-name]").data("product-name");
+                    let productPrice = $(this).find("[data-product-price]").data("product-price");
+                    let productQuantity = $(this).find("[data-product-qty]").val();
+                    let subTotal = productPrice * productQuantity; // Hitung sub total untuk setiap produk
+                    grandTotal += subTotal; // Tambahkan sub total ke grand total
+                    let userId = $(this).find("p:hidden").eq(1).text(); // Ambil ID pengguna dari elemen tersembunyi kedua
+
+                    console.log({
+                        id: productId,
+                        image: productImg,
+                        name: productName,
+                        price: productPrice,
+                        quantity: productQuantity,
+                        subTotal: subTotal,
+                        userId: userId
+                    });
+
+                    products.push({
+                        id: productId,
+                        image: productImg,
+                        name: productName,
+                        price: productPrice,
+                        quantity: productQuantity,
+                        subTotal: subTotal,
+                        userId: userId
+                    });
+                });
+
+                console.log("Grand Total:", grandTotal); // Tampilkan grand total di konsol log
+
+                console.log("Sending AJAX request with data:", products);
+
+                $.ajax({
+                    url: "{{ route('checkout') }}",
+                    method: "POST",
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        products: products,
+                        grandTotal: grandTotal
+                    },
+                    success: function (response) {
+                        alert('Product telah di checkout');
+                        console.log(response);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
+                });
+            });
+        });
+    </script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </body>
 </html>
