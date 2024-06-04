@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Cart;
 use App\Models\Checkout;
+use App\Models\PivotCheckout;
 use App\Models\Product;
+use Carbon\Carbon;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -16,12 +18,25 @@ use Illuminate\Support\Facades\DB;
 class ProductController extends Controller
 {
     public function index()
-    {   
+    {   $userId = Auth::id();
+        $cartQuantity = DB::table('carts')
+            ->where('created_by', $userId)
+            ->sum('quantity');
         $products = Product::all();
         $users = Auth::user()->name;
-        return view('dashboard', compact('products','users'));
+        return view('dashboard', compact('products','users'), ['cartQuantity' => $cartQuantity]);
     }
-    public function movieCart()
+
+    public function getCartQuantity()
+    {
+        $userId = Auth::id();
+        $cartQuantity = DB::table('carts')
+            ->where('created_by', $userId)
+            ->sum('quantity');
+
+        return response()->json(['quantity' => $cartQuantity]);
+    }
+    public function productCart()
     {
         // Ambil semua item di keranjang belanja untuk pengguna yang sedang login
         $cartItems = Cart::where('created_by', Auth::user()->id)->get();
@@ -231,29 +246,84 @@ class ProductController extends Controller
             'grandTotal' => 'required|numeric',
             'products' => 'required|array',
             'products.*.id' => 'required|integer',
+            'products.*.quantity' => 'required|integer',
         ]);
     
-        // Simpan data ke tabel checkouts
-        $checkout = new Checkout();
-        $checkout->grandTotal = $request->grandTotal;
-        $checkout->created_by = Auth::id(); // ID pengguna yang login
-        $checkout->updated_by = Auth::id(); // ID pengguna yang login
-        $checkout->save();
+        // Mulai transaksi database
+        DB::beginTransaction();
     
-        // Simpan data produk ke tabel pivot_checkouts
-        foreach ($request->products as $product) {
-            DB::table('pivot_checkouts')->insert([
-                'checkout_id' => $checkout->id,
-                'product_id' => $product['id'],
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        try {
+            // Simpan data ke tabel checkouts
+            $checkout = new Checkout();
+            $checkout->grandTotal = $request->grandTotal;
+            $checkout->created_by = Auth::id(); // ID pengguna yang login
+            $checkout->updated_by = Auth::id(); // ID pengguna yang login
+            $checkout->save();
     
-            // Hapus data produk dari tabel cart berdasarkan user yang login
-            DB::table('carts')->where('product_id', $product['id'])->where('created_by', Auth::id())->delete();
+            // Simpan data produk ke tabel pivot_checkouts
+            foreach ($request->products as $product) {
+                PivotCheckout::create([
+                    'checkout_id' => $checkout->id,
+                    'product_id' => $product['id'],
+                    'quantity' => $product['quantity'],
+                ]);
+    
+                // Hapus data produk dari tabel cart berdasarkan user yang login
+                Cart::where('product_id', $product['id'])
+                    ->where('created_by', Auth::id())
+                    ->delete();
+            }
+    
+            // Commit transaksi database
+            DB::commit();
+            
+            return response()->json(['success' => true]);
+        } catch (\Exception $e) {
+            // Rollback transaksi database jika terjadi kesalahan
+            DB::rollBack();
+    
+            return response()->json(['success' => false, 'message' => 'Terjadi kesalahan saat checkout', 'error' => $e->getMessage()], 500);
         }
-    
-        return response()->json(['success' => true]);
+    }
+
+    public function invoice(): View
+    {
+        $userId = Auth::id();
+
+        // Ambil data checkout berdasarkan user yang login
+        $checkouts = Checkout::where('created_by', $userId)->with(['pivotCheckouts.product'])->get();
+
+        // Mengambil data dalam format yang mudah digunakan di view
+        $invoiceData = $checkouts->map(function ($checkout) {
+            return [
+                'created_at' => Carbon::parse($checkout->created_at)->isoFormat('dddd, DD-MM-YYYY'),
+                'products' => $checkout->pivotCheckouts->map(function ($pivotCheckout) {
+                    return [
+                        'name' => $pivotCheckout->product->name,
+                        'category' => $pivotCheckout->product->category,
+                        'quantity' => $pivotCheckout->quantity,
+                        'image'    => $pivotCheckout->product->image,
+                        'price'    => $pivotCheckout->product->price
+                    ];
+                }),
+                'grandTotal' => $checkout->grandTotal,
+            ];
+        });
+
+        return view('invoice.index', compact('invoiceData'));
     }
     
+    public function deleteCart(Request $request)
+{
+    $request->validate([
+        'product_id' => 'required|integer',
+        'user_id' => 'required|integer',
+    ]);
+
+    // Hapus data produk dari tabel cart berdasarkan user yang login
+    DB::table('carts')->where('product_id', $request->product_id)->where('created_by', $request->user_id)->delete();
+
+    return response()->json(['success' => true]);
+}
+
 }

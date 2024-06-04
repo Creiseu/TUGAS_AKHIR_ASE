@@ -24,4 +24,9 @@ class Product extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function pivotCheckouts()
+    {
+        return $this->hasMany(PivotCheckout::class);
+    }
 }

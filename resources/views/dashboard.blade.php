@@ -37,13 +37,12 @@
                 </div>
 
                 <!-- Right side content -->
-                <div class="text-white flex items-center">
+                <div class="flex items-center">
                     <div class="hidden hover:border-black sm:-my-px sm:ms-3 sm:flex ml-auto">
-
                         <div class="col-12">
-                            <div class="dropdown" >
-                                <a class="btn btn-outline-dark" href="{{ route('movieCart') }}">
-                                    <i class="fa fa-shopping-cart" aria-hidden="true"></i> Cart <span class="badge text-bg-danger" id="cart-quantity">0</span>
+                            <div class="dropdown">
+                                <a class="btn btn-outline-dark text-white" href="{{ route('productCart') }}">
+                                    <i class="fa fa-shopping-cart" aria-hidden="true"></i> Cart <span class="badge text-bg-danger" id="cart-quantity"></span>
                                 </a>
                             </div>
                         </div>

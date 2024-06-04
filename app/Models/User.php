@@ -44,4 +44,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function checkouts()
+    {
+        return $this->hasMany(Checkout::class, 'created_by');
+    }
 }

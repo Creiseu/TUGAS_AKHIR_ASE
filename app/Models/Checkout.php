@@ -13,4 +13,15 @@ class Checkout extends Model
         'created_by',
         'updated_by'
     ];
+
+    public function pivotCheckouts()
+    {
+        return $this->hasMany(PivotCheckout::class);
+    }
+
+    // Relasi ke user yang membuat checkout
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }
