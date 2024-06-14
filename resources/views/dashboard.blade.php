@@ -143,7 +143,7 @@
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6 mt-12">
-            @forelse ($products->where('category', 'Men') as $product)
+            @forelse ($products->where('category', 'Men')->where('stocks', '>', 0) as $product)
                 <div key={product.id} class='shadow-2xl p-4 rounded-md tab tab-active' data-id="tab1">
                     <img src="{{ asset('storage/' . $product->image) }}" width="250" height="250" class='mx-auto mb-4' />
                     <span class='font-[MyCustomFont-Regular] block'>{{ $product->name }}</span>
@@ -153,12 +153,8 @@
                     <div class='mt-[20px] font-[MyCustomFont-Regular] text-orange-600 text-[20px]'>
                         <span>Rp. <span>{{ $product->price }}</span></span>
                     </div>
-                    <!-- <a
-                        href=''
-                        class='mt-[10px] bg-black rounded-md text-white pl-[20px] pr-[20px] pt-[3px] pb-[3px] mb-[10px] block mx-auto'
-                    >Add To Cart</a> -->
                     <input type="hidden" class="product-quantity" value="1">
-                    <p data-product-belong="{{ Auth::user()->id }}" hidden>{{ Auth::user()->id }}</p>
+                    {{-- <p data-product-belong="{{ Auth::user()->id }}" hidden>{{ Auth::user()->id }}</p> --}}
                     <p class="btn-holder"><button class="mt-[10px] bg-black rounded-md text-white pl-[20px] pr-[20px] pt-[3px] pb-[3px] mb-[10px] block mx-auto add-to-cart" data-product-id="{{ $product->id }}">Add to cart</button></p>
                 </div>
             @empty
@@ -176,13 +172,9 @@
                     <div class='mt-[20px] font-[MyCustomFont-Regular] text-orange-600 text-[20px]'>
                         <span>Rp. <span>{{ $product->price }}</span></span>
                     </div>
-                    <!-- <a
-                        href=''
-                        class='mt-[10px] bg-black rounded-md text-white pl-[20px] pr-[20px] pt-[3px] pb-[3px] mb-[10px] block mx-auto'
-                    >Add To Cart</a> -->
                     <input type="hidden" class="product-quantity" value="1">
-                    <p data-product-belong="{{ Auth::user()->id }}" hidden>{{ Auth::user()->id }}</p>
-                    <p class="btn-holder"><button class="mt-[10px] bg-black rounded-md text-white pl-[20px] pr-[20px] pt-[3px] pb-[3px] mb-[10px] block mx-auto add-to-cart" data-product-id="{{ $product->id }}">Add to cart</button></p>
+                    {{-- <p data-product-belong="{{ Auth::user()->id }}" hidden>{{ Auth::user()->id }}</p> --}}
+                    <p class="btn-holder"><button class="mt-[10px] bg-black rounded-md text-white pl-[20px] pr-[20px] pt-[3px] pb-[3px] mb-[10px] block mx-auto add-to-cart"  data-product-id="{{ $product->id }}">Add to cart</button></p>
                 </div>
             @empty
             <div class="col-span-full text-center">
@@ -199,12 +191,8 @@
                     <div class='mt-[20px] font-[MyCustomFont-Regular] text-orange-600 text-[20px]'>
                         <span>Rp. <span>{{ $product->price }}</span></span>
                     </div>
-                    <!-- <a
-                        href=''
-                        class='mt-[10px] bg-black rounded-md text-white pl-[20px] pr-[20px] pt-[3px] pb-[3px] mb-[10px] block mx-auto'
-                    >Add To Cart</a> -->
                     <input type="hidden" class="product-quantity" value="1">
-                    <p data-product-belong="{{ Auth::user()->id }}" hidden>{{ Auth::user()->id }}</p>
+                    {{-- <p data-product-belong="{{ Auth::user()->id }}" hidden>{{ Auth::user()->id }}</p> --}}
                     <p class="btn-holder"><button class="mt-[10px] bg-black rounded-md text-white pl-[20px] pr-[20px] pt-[3px] pb-[3px] mb-[10px] block mx-auto add-to-cart" data-product-id="{{ $product->id }}">Add to cart</button></p>
                 </div>
             @empty
@@ -230,12 +218,21 @@
         });
         $(".add-to-cart").click(function (e) {
             e.preventDefault();
-    
+            
+            // Pengecekan apakah pengguna sudah login
+            var isLoggedIn = @json($isLoggedIn); // Pastikan variabel $isLoggedIn telah didefinisikan dan dikirimkan dari controller
+            
+            if (!isLoggedIn) {
+                alert('Silahkan login terlebih dahulu');
+                return;
+            }
+
+            // Jika sudah login, lanjutkan proses add to cart
             var productId = $(this).data("product-id");
             var productBelong = $(this).data("product-belong");
             var productQuantity = $(this).siblings(".product-quantity").val();
             var cartItemId = $(this).data("cart-item-id");
-    
+
             $.ajax({
                 url: "{{ route('add-to-cart') }}",
                 method: "POST",
@@ -248,7 +245,7 @@
                 },
                 success: function (response) {
                     $('#cart-quantity').text(response.cartCount);
-                        alert('Cart Updated');
+                    alert('Cart Updated');
                     console.log(response);
                 },
                 error: function (xhr, status, error) {
@@ -257,8 +254,11 @@
                 }
             });
         });
+
     </script>
-    
+    {{-- <script type="text/javascript">
+        var isLoggedIn = @json($isLoggedIn);
+    </script>     --}}
     
     @endsection
 </div>

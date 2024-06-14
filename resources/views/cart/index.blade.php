@@ -116,7 +116,7 @@
         <!--/Navbar-->
 
         <!--page content-->
-        <div class="absolute top-20 pr-8 left-0 lg:left-80 z-0 px-4 h-full w-full md:w-4/5">
+        <div class="absolute top-20 pr-8 left-0 lg:left-80 z-0 px-4 h-full w-full">
             <!-- overview -->
             <div class="flex flex-col lg:flex-row lg:justify-between w-full">
                 <div class="w-full lg:w-1/2 mt-5 lg:pl-0 mb-20 lg:mb-0">
@@ -125,20 +125,29 @@
                             <form id="checkout-form" enctype="multipart/form-data">
                                 @csrf
                                 @forelse($groupedCartItems as $groupedCartItem)
-                                    <div class="product-item" data-product-id="{{$groupedCartItem['product']->id}}">
-                                        <p hidden>{{$groupedCartItem['product']->id}}</p>
+                                    @php
+                                        $product = $groupedCartItem['product'];
+                                        $maxQuantity = $product->stocks; // Ambil nilai stocks dari produk
+                                    @endphp
+                                    <div class="product-item" data-product-id="{{ $product->id }}">
+                                        <p hidden>{{ $product->id }}</p>
                                         <div class="flex flex-row items-center gap-4 mb-4">
-                                            <img src="{{ asset('storage/'.$groupedCartItem['product']->image) }}" data-product-image="{{$groupedCartItem['product']->image}}" class="w-32 h-32 object-cover">
+                                            <img src="{{ asset('storage/' . $product->image) }}" data-product-image="{{ $product->image }}" class="w-32 h-32 object-cover">
                                             <div class="flex flex-col">
-                                                <p data-product-name="{{$groupedCartItem['product']->name}}">Nama Produk: {{ $groupedCartItem['product']->name }}</p>
-                                                <p data-product-price="{{$groupedCartItem['product']->price}}">Harga: {{ $groupedCartItem['product']->price }}</p>
+                                                <p data-product-name="{{ $product->name }}">Nama Produk: {{ $product->name }}</p>
+                                                <p data-product-price="{{ $product->price }}">Harga: {{ $product->price }}</p>
+                                                <div class="bg-red-600 text-white" data-product-stocks="{{ $product->stocks }}">Sisa stock: {{ $product->stocks }}</div>
                                             </div>
                                             <div class="ml-auto">
                                                 <label for="input" class="block">Quantity:</label>
-                                                <input type="number" value="{{ $groupedCartItem['quantity'] }}" data-product-qty="{{$groupedCartItem['quantity']}}" class="h-9 w-24 border rounded px-2">
+                                                <input type="number" value="{{ $groupedCartItem['quantity'] }}" data-product-qty="{{ $groupedCartItem['quantity'] }}" class="h-9 w-24 border rounded px-2 quantity-input" step="1" min="1" max="{{ $product->stocks }}">
                                             </div>
                                             <div class="ml-4">
-                                                <a href="#" class="delete-product text-red-500" data-product-id="{{$groupedCartItem['product']->id}}">Hapus</a>
+                                                <label for="input" class="block">Total:</label>
+                                                <input type="number" value="{{ $product->price * $groupedCartItem['quantity'] }}" class="h-9 w-24 border rounded px-2 total-input" readonly>
+                                            </div>
+                                            <div class="ml-4">
+                                                <a href="#" class="delete-product text-red-500" data-product-id="{{ $product->id }}">Hapus</a>
                                             </div>
                                         </div>
                                         <p hidden>{{ Auth::user()->id }}</p>
@@ -152,7 +161,7 @@
                                         <button type="button" id="checkout" class="px-4 py-2 bg-blue-500 text-white rounded">Checkout</button>
                                     </div>
                                 @endif
-                            </form>                            
+                            </form>                                                                               
                         </div>   
                     </div>
                 </div>
@@ -169,94 +178,101 @@
     <!--Scripts-->
     <script src="./assets/js/app.js"></script>
     <script>
-        $(document).ready(function() {
-    // Hapus produk dari keranjang
-        $(".delete-product").click(function (e) {
-            e.preventDefault();
+        $(document).ready(function () {
+            function updateTotal() {
+                $(".product-item").each(function () {
+                    let productItem = $(this);
+                    let productPrice = parseFloat(productItem.find("[data-product-price]").data("product-price"));
+                    let quantity = parseInt(productItem.find(".quantity-input").val());
+                    let totalInput = productItem.find(".total-input");
 
-            let productId = $(this).data("product-id");
-            let userId = {{ Auth::user()->id }};
+                    let total = productPrice * quantity;
+                    totalInput.val(total);
+                });
+            }
+            updateTotal();
 
-            $.ajax({
-                url: "{{ route('deleteCart') }}", // Ganti dengan rute penghapusan yang sesuai
-                method: "POST",
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    product_id: productId,
-                    user_id: userId
-                },
-                success: function (response) {
-                    alert('Produk telah dihapus dari keranjang');
-                    location.reload(); // Memuat ulang halaman untuk memperbarui tampilan keranjang
-                },
-                error: function (xhr, status, error) {
-                    console.error(xhr.responseText);
-                }
+            $(".quantity-input").on('input', function () {
+                updateTotal();
             });
-        });
 
-        // Checkout produk
-        $("#checkout").click(function (e) {
-            e.preventDefault();
+            $("#checkout").click(function (e) {
+                e.preventDefault();
 
-            console.log("Checkout button clicked");
+                console.log("Checkout button clicked");
 
-            let products = [];
-            let grandTotal = 0; // Inisialisasi grand total
+                let products = [];
+                let grandTotal = 0; // Inisialisasi grand total
+                let valid = true; // Inisialisasi flag validasi
 
-            $(".product-item").each(function() {
-                let productId = $(this).data("product-id");
-                let productImg = $(this).find("img").data("product-image");
-                let productName = $(this).find("[data-product-name]").data("product-name");
-                let productPrice = $(this).find("[data-product-price]").data("product-price");
-                let productQuantity = $(this).find("[data-product-qty]").val();
-                let subTotal = productPrice * productQuantity; // Hitung sub total untuk setiap produk
-                grandTotal += subTotal; // Tambahkan sub total ke grand total
-                let userId = $(this).find("p:hidden").eq(1).text(); // Ambil ID pengguna dari elemen tersembunyi kedua
+                $(".product-item").each(function () {
+                    let productId = $(this).data("product-id");
+                    let productImg = $(this).find("img").data("product-image");
+                    let productName = $(this).find("[data-product-name]").data("product-name");
+                    let productPrice = parseFloat($(this).find("[data-product-price]").data("product-price"));
+                    let productQuantity = parseInt($(this).find(".quantity-input").val());
+                    let maxStocks = parseInt($(this).find("[data-product-stocks]").data("product-stocks")); // Ambil nilai maksimum dari data stocks
 
-                console.log({
-                    id: productId,
-                    image: productImg,
-                    name: productName,
-                    price: productPrice,
-                    quantity: productQuantity,
-                    subTotal: subTotal,
-                    userId: userId
+                    // Validasi: pastikan quantity tidak melebihi stocks
+                    if (productQuantity > maxStocks) {
+                        alert(`Quantity untuk produk "${productName}" tidak boleh melebihi stok yang tersedia (${maxStocks})`);
+                        valid = false;
+                        return false; // Keluar dari loop each jika ada salah satu quantity melebihi stocks
+                    }
+
+                    let subTotal = productPrice * productQuantity; // Hitung sub total untuk setiap produk
+                    grandTotal += subTotal; // Tambahkan sub total ke grand total
+                    let userId = $(this).find("p:hidden").eq(1).text(); // Ambil ID pengguna dari elemen tersembunyi kedua
+
+                    console.log({
+                        id: productId,
+                        image: productImg,
+                        name: productName,
+                        price: productPrice,
+                        quantity: productQuantity,
+                        subTotal: subTotal,
+                        userId: userId
+                    });
+
+                    products.push({
+                        id: productId,
+                        image: productImg,
+                        name: productName,
+                        price: productPrice,
+                        quantity: productQuantity,
+                        subTotal: subTotal,
+                        userId: userId
+                    });
                 });
 
-                products.push({
-                    id: productId,
-                    image: productImg,
-                    name: productName,
-                    price: productPrice,
-                    quantity: productQuantity,
-                    subTotal: subTotal,
-                    userId: userId
+                // Jika ada salah satu quantity melebihi stocks, hentikan proses checkout
+                if (!valid) {
+                    return;
+                }
+
+                console.log("Grand Total:", grandTotal); // Tampilkan grand total di konsol log
+
+                console.log("Sending AJAX request with data:", products);
+
+                // Lakukan AJAX request untuk checkout
+                $.ajax({
+                    url: "{{ route('checkout') }}",
+                    method: "POST",
+                    data: {
+                        _token: '{{ csrf_token() }}',
+                        products: products,
+                        grandTotal: grandTotal
+                    },
+                    success: function (response) {
+                        alert('Product telah di checkout');
+                        console.log(response);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error(xhr.responseText);
+                    }
                 });
             });
-
-            console.log("Grand Total:", grandTotal); // Tampilkan grand total di konsol log
-
-            console.log("Sending AJAX request with data:", products);
-
-            $.ajax({
-                url: "{{ route('checkout') }}",
-                method: "POST",
-                data: {
-                    _token: '{{ csrf_token() }}',
-                    products: products,
-                    grandTotal: grandTotal
-                },
-                success: function (response) {
-                    alert('Product telah di checkout');
-                    console.log(response);
-                },
-                error: function (xhr, status, error) {
-                    console.error(xhr.responseText);
-                }
-            });
         });
-});
 
     </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>

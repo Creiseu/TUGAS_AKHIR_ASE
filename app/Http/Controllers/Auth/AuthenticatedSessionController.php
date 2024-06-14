@@ -15,25 +15,33 @@ class AuthenticatedSessionController extends Controller
      * Display the login view.
      */
     public function create(): View
-    {
-        return view('auth.login');
+    {   
+        $isLoggedIn = Auth::check();
+        return view('auth.login', compact('isLoggedIn'));
     }
 
     /**
      * Handle an incoming authentication request.
      */
     public function store(LoginRequest $request): RedirectResponse
-    {
-        $request->authenticate();
+{
+    // Autentikasi pengguna
+    $request->authenticate();
 
-        $request->session()->regenerate();
+    // Regenerate session setelah autentikasi berhasil
+    $request->session()->regenerate();
 
-        if(Auth::user()->userType == 'admin'){
-            return redirect(route('admin.dashboard'));
-        }
+    // Periksa apakah pengguna sudah login
+    $isLoggedIn = Auth::check();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+    // Redirect ke dashboard admin jika userType adalah 'admin'
+    if (Auth::user()->userType == 'admin') {
+        return redirect()->route('admin.dashboard', compact('isLoggedIn'));
     }
+
+    // Redirect ke dashboard biasa jika bukan 'admin'
+    return redirect()->intended(route('dashboard'))->with('isLoggedIn', $isLoggedIn);}
+
 
     /**
      * Destroy an authenticated session.

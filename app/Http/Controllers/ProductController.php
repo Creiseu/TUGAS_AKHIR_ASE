@@ -27,15 +27,15 @@ class ProductController extends Controller
         return view('dashboard', compact('products','users'), ['cartQuantity' => $cartQuantity]);
     }
 
-    public function getCartQuantity()
-    {
-        $userId = Auth::id();
-        $cartQuantity = DB::table('carts')
-            ->where('created_by', $userId)
-            ->sum('quantity');
+    // public function getCartQuantity()
+    // {
+    //     $userId = Auth::id();
+    //     $cartQuantity = DB::table('carts')
+    //         ->where('created_by', $userId)
+    //         ->sum('quantity');
 
-        return response()->json(['quantity' => $cartQuantity]);
-    }
+    //     return response()->json(['quantity' => $cartQuantity]);
+    // }
     public function productCart()
     {
         // Ambil semua item di keranjang belanja untuk pengguna yang sedang login
@@ -262,6 +262,13 @@ class ProductController extends Controller
     
             // Simpan data produk ke tabel pivot_checkouts
             foreach ($request->products as $product) {
+                // Kurangi stok produk
+                $productModel = Product::find($product['id']);
+                if ($productModel) {
+                    $productModel->stocks -= $product['quantity'];
+                    $productModel->save();
+                }
+    
                 PivotCheckout::create([
                     'checkout_id' => $checkout->id,
                     'product_id' => $product['id'],
@@ -285,6 +292,7 @@ class ProductController extends Controller
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan saat checkout', 'error' => $e->getMessage()], 500);
         }
     }
+    
 
     public function invoice(): View
     {
@@ -314,16 +322,27 @@ class ProductController extends Controller
     }
     
     public function deleteCart(Request $request)
-{
-    $request->validate([
-        'product_id' => 'required|integer',
-        'user_id' => 'required|integer',
-    ]);
+    {
+        $request->validate([
+            'product_id' => 'required|integer',
+            'user_id' => 'required|integer',
+        ]);
 
-    // Hapus data produk dari tabel cart berdasarkan user yang login
-    DB::table('carts')->where('product_id', $request->product_id)->where('created_by', $request->user_id)->delete();
+        // Hapus data produk dari tabel cart berdasarkan user yang login
+        DB::table('carts')->where('product_id', $request->product_id)->where('created_by', $request->user_id)->delete();
 
-    return response()->json(['success' => true]);
-}
+        return response()->json(['success' => true]);
+    }
+
+    public function logTransaction()
+    {
+        // Ambil semua data pivot_checkouts berdasarkan pengguna yang sedang login
+        $userId = Auth::id();
+        $pivotCheckouts = PivotCheckout::with('checkout.createdBy', 'product')->get();
+
+        // dd($pivotCheckouts);
+
+        return view('admin.log', compact('pivotCheckouts'));
+    }
 
 }

@@ -7,10 +7,14 @@ use App\Http\Controllers\MovieController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    $products = Product::all();
+    $isLoggedIn = Auth::check();
+    return view('dashboard', compact('products', 'isLoggedIn'));
+})->name('dashboards');
 
 // Route::get('/dashboard', function () {
 //     $products = Product::all();
@@ -38,6 +42,7 @@ Route::post('checkout', [ProductController::class, 'checkout'])->name('checkout'
 Route::get('/invoice', [ProductController::class, 'invoice'])->name('invoice');
 Route::post('/cart/delete', [ProductController::class, 'deleteCart'])->name('deleteCart');
 Route::get('dashboard', [ProductController::class, 'getCartQuantity'])->name('cartQuantity');
+Route::get('admin/dashboard/log', [ProductController::class, 'logTransaction'])->name('logTransaction');
 
 require __DIR__.'/auth.php';
 

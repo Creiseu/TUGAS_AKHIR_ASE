@@ -11,7 +11,8 @@ class PivotCheckout extends Model
     protected $fillable = [
         'checkout_id',
         'product_id',
-        'quantity'
+        'quantity',
+        'created_by'
     ];
 
     public function product()
