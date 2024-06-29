@@ -12,10 +12,10 @@
 </head>
 <body>
     <!--Body wrapper--> 
-    <div class="bg-white min-h-screen overflow-y-scroll overflow-x-hidden block relative w-full h-full">
+    <div class="bg-white min-h-screen block relative w-full h-full">
 
         <!--Side Navigation-->
-        <div class="overflow-y-scroll fixed top-0 bottom-0 left-0 h-full min-h-screen w-72 bg-white px-6 py-3 shadow-sm hidden lg:block z-50" id="sidenav">
+        <div class="fixed top-0 bottom-0 left-0 h-full min-h-screen w-72 bg-white px-6 py-3 shadow-sm hidden lg:block z-50" id="sidenav">
             <div class="relative">
                 <div class="absolute top-2 right-0 text-lg text-gray-500 cursor-pointer block lg:hidden" id="closeNav">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -118,10 +118,10 @@
         <!--page content-->
         <div class="absolute top-20 pr-8 left-0 lg:left-80 z-0 px-4 h-full w-full">
             <!-- overview -->
-            <div class="flex flex-col lg:flex-row lg:justify-between w-full">
+            <div class="">
                 <div class="w-full lg:w-1/2 mt-5 lg:pl-0 mb-20 lg:mb-0">
                     <div class="flex flex-col items-center lg:items-start">
-                        <div class="font-['MyCustomFont-Bold'] w-full h-96 overflow-y-auto">
+                        <div class="font-['MyCustomFont-Bold'] w-full h-100 "> {{--menghilangkan scroll bawah--}}
                             <form id="checkout-form" enctype="multipart/form-data">
                                 @csrf
                                 @forelse($groupedCartItems as $groupedCartItem)

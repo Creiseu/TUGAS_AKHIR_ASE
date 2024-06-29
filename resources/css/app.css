@@ -9,6 +9,9 @@
     font-family: 'MyCustomFont-Regular'; /* Replace with your desired font name */
     src: url('/fonts/BeaufortforLOL-Regular.otf') format('opentype');
 }
+@font-face {
+	font-family: ''
+}
 .gambar-bg{
 	background-image: url('{{ asset('storage/2.jpg') }}'); background-size: cover; background-position: center;
 }

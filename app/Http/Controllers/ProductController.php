@@ -104,18 +104,18 @@ class ProductController extends Controller
         //validate form
         $request->validate([
             'image'         => 'required|image|mimes:jpeg,jpg,png|max:9048',
-            'name'         => 'required',
+            'name'          => 'required',
             'tag'           => 'required', 
             'description'   => 'required|min:10',
-            'category'      => 'required',
+            'category'      => 'required|in:Men,Women,Kid', // Validate that category is one of the specified values
             'price'         => 'required|numeric',
-            'stocks'         => 'required|numeric',
+            'stocks'        => 'required|numeric',
         ]);
-
+    
         //upload image
         $image = $request->file('image');
         $image->storeAs('public', $image->hashName());
-
+    
         //create product
         Product::create([
             'image'         => $image->hashName(),
@@ -128,7 +128,7 @@ class ProductController extends Controller
             'created_by'    => Auth::id(),
             'updated_by'    => Auth::id(),
         ]);
-
+    
         //redirect to index
         return redirect()->route('admin.dashboard')->with(['success' => 'Data Berhasil Disimpan!']);
     }

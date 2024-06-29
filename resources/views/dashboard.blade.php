@@ -4,7 +4,7 @@
         style="background-image: url('back/wow.jpg');
         background-size: cover;
         height: 620px;">
-        <nav x-data="{ open:  }" class="bg-transparent border-gray-100 animate-slide-down">
+        <nav x-data="{ open:  }" class="bg-transparent border-gray-100">
             <!-- Primary Navigation Menu -->
             <div class="max-w-7xl mx-auto flex justify-between items-center h-16">
                 <div class="text-white flex items-center">
@@ -51,7 +51,7 @@
                 </div>
             </div>
 
-            <div class='animate-slide-down'>
+            <div class=''>
                 <div>
                     <div class="font-semibold text-center box-content h-[200px] w-[1270px] ml-14 mt-[180px] text-white text-[60px]">
                         Trusted Hiking Gear For Your Adventures
@@ -70,8 +70,8 @@
     </div>
     <div>
         <div class='mt-[15px] mb-[20px]'>
-            <p class='text-center font-bold text-[40px] font-["MyCustomFont-Bold"]'>- CATEGORY -</p>
-            <p class='text-center text-[15px] font-["MyCustomFont-Regular"] -mt-[15px]'>Discover comfortable and functional hiking apparel that keeps you protected and lets you move freely on the trails</p>
+            <p class='text-center font-bold text-[40px] font-["MyCustomFont-Bold"]'>CATEGORY</p>
+            <p class='text-center text-[20px] font-["MyCustomFont-Regular"] -mt-[3px]'>Discover comfortable and functional hiking apparel that keeps you protected and lets you move freely on the trails</p>
         </div>
         <div class='flex'>
             <div class='flex flex-wrap'>  <a href="" style="
@@ -131,8 +131,12 @@
                 </div>
             </div>
         </div>
-    </div>    
+    </div>
     <div class='grid grid-cols-1 mt-[50px] ml-[25px]'>
+        <div class='mt-[15px] mb-[20px]'>
+            <p class='text-center font-bold text-[40px] font-["MyCustomFont-Bold"]'>PRODUCTS</p>
+            <p class='text-center text-[20px] font-["MyCustomFont-Regular"] -mt-[3px]'>Ready to Tackle the Great Outdoors? Start Your Journey with Our Best Hiking Gear, Designed for the Ultimate Adventure</p>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-6 gap-1 mt-[50px]">
             <div class="">
                 <ul class="grid grid-col-4 grid-flow-col gap-4">
