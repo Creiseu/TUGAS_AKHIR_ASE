@@ -1,3 +1,101 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<style>
+    .product-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+    }
+
+    .product-card {
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        width: 200px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    .product-image {
+        object-fit: cover;
+    }
+
+    .product-name {
+        font-size: 14px;
+        font-weight: 500;
+        margin: 10px 10px 5px 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .product-rating {
+        display: flex;
+        align-items: center;
+        margin: 0 10px 5px 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .rating-text {
+        background-color: #FFD700;
+        color: #fff;
+        padding: 2px 5px;
+        border-radius: 3px;
+        font-size: 10px;
+        margin-right: 5px;
+    }
+
+    .stars i {
+        color: #FFD700;
+        font-size: 10px;
+    }
+
+    .product-category {
+        font-size: 14px;
+        color: #777;
+        margin: 0 10px 5px 10px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .product-price {
+        font-size: 20px;
+        color: #1b1b1b;
+        margin: 0 10px 10px 10px;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .add-to-cart {
+        color: #fff;
+        border: none;
+        padding: 6px;
+        cursor: pointer;
+        width: 100%;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        margin-top: auto;
+    }
+
+    .add-to-cart i {
+        margin-right: 3px;
+    }
+
+    .add-to-cart:hover {
+        background-color: #ff4c4c;
+    }
+</style>
 <div>
     <!-- @extends('main-product') -->
     <div
@@ -140,65 +238,115 @@
         <div class="grid grid-cols-1 md:grid-cols-6 gap-1 mt-[50px]">
             <div class="">
                 <ul class="grid grid-col-4 grid-flow-col gap-4">
-                    <li><a href="#" class="tab-a font-['MyCustomFont-Bold'] active-a" data-id="tab1">Men</a></li>
-                    <li><a href="#" class="tab-a" data-id="tab2">Women</a></li>
-                    <li><a href="#" class="tab-a" data-id="tab3">Kids</a></li>
+                    <li><a href="#" class="tab-cat font-['MyCustomFont-Bold'] active-a" data-id="tab1">Men</a></li>
+                    <li><a href="#" class="tab-cat" data-id="tab2">Women</a></li>
+                    <li><a href="#" class="tab-cat" data-id="tab3">Kids</a></li>
                 </ul>
             </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6 mt-12">
-            @forelse ($products->where('category', 'Men')->where('stocks', '>', 0) as $product)
-                <div key={product.id} class='shadow-2xl p-4 rounded-md tab tab-active' data-id="tab1">
-                    <img src="{{ asset('storage/' . $product->image) }}" width="250" height="250" class='mx-auto mb-4' />
-                    <span class='font-[MyCustomFont-Regular] block'>{{ $product->name }}</span>
-                    <br />
-                    <span class='font-[MyCustomFont-Regular] text-[12px] bg-black bg-opacity-10 rounded-sm'>{{ $product->tag }}</span>
-                    <br />
-                    <div class='mt-[20px] font-[MyCustomFont-Regular] text-orange-600 text-[20px]'>
-                        <span>Rp. <span>{{ $product->price }}</span></span>
+            @php
+                $menProducts = $products->where('category', 'Men')->where('stocks', '>', 0);
+                $menProductsArray = $menProducts->toArray();
+
+                $totalProducts = count($menProductsArray);
+
+                shuffle($menProductsArray);
+
+                $buyOneGetOneIndex = $totalProducts >= 5 ? array_rand($menProductsArray, 1) : null;
+                $thirtyPercentOffIndex = $totalProducts > 6 ? array_rand($menProductsArray, 1) : null;
+
+                while ($buyOneGetOneIndex !== null && $thirtyPercentOffIndex !== null && $buyOneGetOneIndex === $thirtyPercentOffIndex) {
+                    $thirtyPercentOffIndex = array_rand($menProductsArray, 1);
+                }
+            @endphp
+            @forelse ($menProductsArray as $index => $product)
+                <div class="product-container tab tab-active" data-id="tab1">
+                    <div class="product-card">
+                        <img src="{{ asset('storage/' . $product['image']) }}" width="250" height="250" class="product-image mx-auto mb-4" />
+                        @if ($index === $buyOneGetOneIndex)
+                            <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-black text-center text-sm text-white">Buy 1 Get 1</span>
+                        @elseif ($index === $thirtyPercentOffIndex)
+                            <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-black text-center text-sm text-white">30% Off</span>
+                        @endif
+                        <h2 class="product-name text-black">{{ $product['name'] }}</h2>
+                        <div class="product-rating">
+                            <span class="rating-text">5.0</span>
+                            <span class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </span>
+                        </div>
+                        <p class="product-category">{{ $product['tag'] }}</p>
+                        <p class="product-price">IDR {{ $product['price'] }}</p>
+                        <input type="hidden" class="product-quantity" value="1">
+                        <button class="add-to-cart bg-slate-900 hover:bg-black" data-product-id="{{ $product['id'] }}">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
                     </div>
-                    <input type="hidden" class="product-quantity" value="1">
-                    {{-- <p data-product-belong="{{ Auth::user()->id }}" hidden>{{ Auth::user()->id }}</p> --}}
-                    <p class="btn-holder"><button class="mt-[10px] bg-black rounded-md text-white pl-[20px] pr-[20px] pt-[3px] pb-[3px] mb-[10px] block mx-auto add-to-cart" data-product-id="{{ $product->id }}">Add to cart</button></p>
                 </div>
             @empty
-            <div class="col-span-full text-center">
-                <p class="text-gray-500">No products available</p>
-            </div>
-            @endforelse
-            @forelse ($products->where('category', 'Women') as $product)
-                <div key={product.id} class='shadow-2xl p-4 rounded-md tab' data-id="tab2">
-                    <img src="{{ asset('storage/' . $product->image) }}" width="250" height="250" class='mx-auto mb-4' />
-                    <span class='font-[MyCustomFont-Regular] block'>{{ $product->name }}</span>
-                    <br />
-                    <span class='font-[MyCustomFont-Regular] text-[12px] bg-black bg-opacity-10 rounded-sm'>{{ $product->tag }}</span>
-                    <br />
-                    <div class='mt-[20px] font-[MyCustomFont-Regular] text-orange-600 text-[20px]'>
-                        <span>Rp. <span>{{ $product->price }}</span></span>
-                    </div>
-                    <input type="hidden" class="product-quantity" value="1">
-                    {{-- <p data-product-belong="{{ Auth::user()->id }}" hidden>{{ Auth::user()->id }}</p> --}}
-                    <p class="btn-holder"><button class="mt-[10px] bg-black rounded-md text-white pl-[20px] pr-[20px] pt-[3px] pb-[3px] mb-[10px] block mx-auto add-to-cart"  data-product-id="{{ $product->id }}">Add to cart</button></p>
+                <div class="col-span-full text-center">
+                    <p class="text-gray-500">No products available</p>
                 </div>
+            @endforelse
+
+            @forelse ($products->where('category', 'Women') as $product)
+                <div class="product-container tab" data-id="tab2">
+                    <div class="product-card">
+                        <img src="{{ asset('storage/' . $product->image) }}" width="250" height="250" class='mx-auto mb-4' />
+                        <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-yellow-500 text-center text-sm text-white">Sale</span>
+                        <h2 class="product-name text-black">{{ $product->name }}</h2>
+                        <div class="product-rating">
+                            <span class="rating-text">5.0</span>
+                            <span class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </span>
+                        </div>
+                        <p class="product-category">{{ $product->tag }}</p>
+                        <p class="product-price text-black">IDR {{ $product->price }}</p>
+                        <input type="hidden" class="product-quantity" value="1">
+                        <button class="add-to-cart bg-slate-900 hover:bg-black" data-product-id="{{ $product->id }}">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>  
             @empty
             <div class="col-span-full text-center">
                 <p class="text-gray-500">No products available</p>
             </div>
             @endforelse
             @forelse ($products->where('category', 'Kids') as $product)
-                <div key={product.id} class='shadow-2xl p-4 rounded-md tab' data-id="tab3">
-                    <img src="{{ asset('storage/' . $product->image) }}" width="250" height="250" class='mx-auto mb-4' />
-                    <span class='font-[MyCustomFont-Regular] block'>{{ $product->name }}</span>
-                    <br />
-                    <span class='font-[MyCustomFont-Regular] text-[12px] bg-black bg-opacity-10 rounded-sm'>{{ $product->tag }}</span>
-                    <br />
-                    <div class='mt-[20px] font-[MyCustomFont-Regular] text-orange-600 text-[20px]'>
-                        <span>Rp. <span>{{ $product->price }}</span></span>
+                <div class="product-container tab" data-id="tab3">
+                    <div class="product-card">
+                        <img src="{{ asset('storage/' . $product->image) }}" width="250" height="250" class='mx-auto mb-4' />
+                        <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-blue-700 text-center text-sm text-white">Sale</span>
+                        <h2 class="product-name text-black">{{ $product->name }}</h2>
+                        <div class="product-rating">
+                            <span class="rating-text">5.0</span>
+                            <span class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </span>
+                        </div>
+                        <p class="product-category">{{ $product->tag }}</p>
+                        <p class="product-price text-black">IDR {{ $product->price }}</p>
+                        <input type="hidden" class="product-quantity" value="1">
+                        <button class="add-to-cart bg-slate-900 hover:bg-black" data-product-id="{{ $product->id }}">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
                     </div>
-                    <input type="hidden" class="product-quantity" value="1">
-                    {{-- <p data-product-belong="{{ Auth::user()->id }}" hidden>{{ Auth::user()->id }}</p> --}}
-                    <p class="btn-holder"><button class="mt-[10px] bg-black rounded-md text-white pl-[20px] pr-[20px] pt-[3px] pb-[3px] mb-[10px] block mx-auto add-to-cart" data-product-id="{{ $product->id }}">Add to cart</button></p>
-                </div>
+                </div>   
             @empty
             <div class="col-span-full text-center">
                 <p class="text-gray-500">No products available</p>
@@ -211,27 +359,25 @@
     
     <script type="text/javascript">
         $(document).ready(function(){ 
-            $('.tab-a').click(function(e){
-            e.preventDefault(); // Prevent default link behavior (scrolling to top)
+            $('.tab-cat').click(function(e){
+            e.preventDefault();
 
             $(".tab").removeClass('tab-active');
             $(".tab[data-id='"+$(this).attr('data-id')+"']").addClass("tab-active");
-            $(".tab-a").removeClass('active-a');
-            $(this).parent().find(".tab-a").addClass('active-a');
+            $(".tab-cat").removeClass('active-a');
+            $(this).parent().find(".tab-cat").addClass('active-a');
             });
         });
         $(".add-to-cart").click(function (e) {
             e.preventDefault();
-            
-            // Pengecekan apakah pengguna sudah login
-            var isLoggedIn = @json($isLoggedIn); // Pastikan variabel $isLoggedIn telah didefinisikan dan dikirimkan dari controller
+
+            var isLoggedIn = @json($isLoggedIn);
             
             if (!isLoggedIn) {
                 alert('Silahkan login terlebih dahulu');
                 return;
             }
 
-            // Jika sudah login, lanjutkan proses add to cart
             var productId = $(this).data("product-id");
             var productBelong = $(this).data("product-belong");
             var productQuantity = $(this).siblings(".product-quantity").val();
@@ -253,16 +399,11 @@
                     console.log(response);
                 },
                 error: function (xhr, status, error) {
-                    // Handle errors (e.g., display an error message)
                     console.error(xhr.responseText);
                 }
             });
         });
 
     </script>
-    {{-- <script type="text/javascript">
-        var isLoggedIn = @json($isLoggedIn);
-    </script>     --}}
-    
     @endsection
 </div>
