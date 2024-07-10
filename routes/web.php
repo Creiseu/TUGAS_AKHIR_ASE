@@ -44,6 +44,8 @@ Route::post('/cart/delete', [ProductController::class, 'deleteCart'])->name('del
 Route::get('dashboard', [ProductController::class, 'getCartQuantity'])->name('cartQuantity');
 Route::get('admin/dashboard/log', [ProductController::class, 'logTransaction'])->name('logTransaction');
 
+Route::get('/invoice/{id}/download', [ProductController::class, 'download'])->name('checkout.invoice.download');
+
 require __DIR__.'/auth.php';
 
 // User route

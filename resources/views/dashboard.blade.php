@@ -139,9 +139,9 @@
                     <div class="hidden hover:border-black sm:-my-px sm:ms-3 sm:flex ml-auto">
                         <div class="col-12">
                             <div class="dropdown">
-                                <a class="btn btn-outline-dark text-white" href="{{ route('productCart') }}">
+                                <a id="cart-button" class="btn btn-outline-dark text-white" href="{{ route('productCart') }}">
                                     <i class="fa fa-shopping-cart" aria-hidden="true"></i> Cart <span class="badge text-bg-danger" id="cart-quantity"></span>
-                                </a>
+                                </a>                                
                             </div>
                         </div>
                     </div>
@@ -253,20 +253,51 @@
 
                 shuffle($menProductsArray);
 
-                $buyOneGetOneIndex = $totalProducts >= 5 ? array_rand($menProductsArray, 1) : null;
-                $thirtyPercentOffIndex = $totalProducts > 6 ? array_rand($menProductsArray, 1) : null;
+                // Jumlah label Buy 1 Get 1 berdasarkan kelipatan 4
+                $buyOneGetOneCount = intdiv($totalProducts, 4);
 
-                while ($buyOneGetOneIndex !== null && $thirtyPercentOffIndex !== null && $buyOneGetOneIndex === $thirtyPercentOffIndex) {
-                    $thirtyPercentOffIndex = array_rand($menProductsArray, 1);
+                // Jumlah label 30% Off berdasarkan kelipatan 6
+                $thirtyPercentOffCount = intdiv($totalProducts, 6);
+
+                $buyOneGetOneIndices = [];
+                $thirtyPercentOffIndices = [];
+
+                // Mendapatkan indeks untuk Buy 1 Get 1
+                if ($buyOneGetOneCount > 0) {
+                    $buyOneGetOneIndices = array_rand($menProductsArray, $buyOneGetOneCount);
+                    if (!is_array($buyOneGetOneIndices)) {
+                        $buyOneGetOneIndices = [$buyOneGetOneIndices];
+                    }
                 }
+
+                // Mendapatkan indeks untuk 30% Off
+                if ($thirtyPercentOffCount > 0) {
+                    $thirtyPercentOffIndices = array_rand($menProductsArray, $thirtyPercentOffCount);
+                    if (!is_array($thirtyPercentOffIndices)) {
+                        $thirtyPercentOffIndices = [$thirtyPercentOffIndices];
+                    }
+                }
+
+                // Menggabungkan indeks Buy 1 Get 1 dan 30% Off untuk menghindari duplikasi
+                $usedIndices = array_merge($buyOneGetOneIndices, $thirtyPercentOffIndices);
+
+                // Jika ada duplikasi, cari indeks baru untuk 30% Off
+                foreach ($thirtyPercentOffIndices as $index) {
+                    while (in_array($index, $buyOneGetOneIndices)) {
+                        $index = array_rand($menProductsArray, 1);
+                    }
+                    $usedIndices[] = $index;
+                }
+
+                $thirtyPercentOffIndices = array_unique($thirtyPercentOffIndices);
             @endphp
             @forelse ($menProductsArray as $index => $product)
                 <div class="product-container tab tab-active" data-id="tab1">
                     <div class="product-card">
                         <img src="{{ asset('storage/' . $product['image']) }}" width="250" height="250" class="product-image mx-auto mb-4" />
-                        @if ($index === $buyOneGetOneIndex)
+                        @if (in_array($index, $buyOneGetOneIndices))
                             <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-black text-center text-sm text-white">Buy 1 Get 1</span>
-                        @elseif ($index === $thirtyPercentOffIndex)
+                        @elseif (in_array($index, $thirtyPercentOffIndices))
                             <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-black text-center text-sm text-white">30% Off</span>
                         @endif
                         <h2 class="product-name text-black">{{ $product['name'] }}</h2>
@@ -281,7 +312,87 @@
                             </span>
                         </div>
                         <p class="product-category">{{ $product['tag'] }}</p>
-                        <p class="product-price">IDR {{ $product['price'] }}</p>
+                        <p class="product-price text-black">IDR {{ number_format($product['price'], 0, ',', '.') }}</p>
+                        <input type="hidden" class="product-quantity" value="1">
+                        <button class="add-to-cart bg-slate-900 hover:bg-black" data-product-id="{{ $product['id'] }}" data-product-stocks="{{ $product['stocks'] }}">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            @empty
+                <div class="col-span-full text-center">
+                    <p class="text-gray-500">No products available</p>
+                </div>
+            @endforelse
+
+            @php
+                $womenProducts = $products->where('category', 'Women')->where('stocks', '>', 0);
+                $womenProductsArray = $womenProducts->toArray();
+
+                $totalProducts = count($womenProductsArray);
+
+                shuffle($womenProductsArray);
+
+                // Jumlah label Buy 1 Get 1 berdasarkan kelipatan 4
+                $buyOneGetOneCount = intdiv($totalProducts, 4);
+
+                // Jumlah label 30% Off berdasarkan kelipatan 6
+                $thirtyPercentOffCount = intdiv($totalProducts, 6);
+
+                $buyOneGetOneIndices = [];
+                $thirtyPercentOffIndices = [];
+
+                // Mendapatkan indeks untuk Buy 1 Get 1
+                if ($buyOneGetOneCount > 0) {
+                    $buyOneGetOneIndices = array_rand($womenProductsArray, $buyOneGetOneCount);
+                    if (!is_array($buyOneGetOneIndices)) {
+                        $buyOneGetOneIndices = [$buyOneGetOneIndices];
+                    }
+                }
+
+                // Mendapatkan indeks untuk 30% Off
+                if ($thirtyPercentOffCount > 0) {
+                    $thirtyPercentOffIndices = array_rand($womenProductsArray, $thirtyPercentOffCount);
+                    if (!is_array($thirtyPercentOffIndices)) {
+                        $thirtyPercentOffIndices = [$thirtyPercentOffIndices];
+                    }
+                }
+
+                // Menggabungkan indeks Buy 1 Get 1 dan 30% Off untuk menghindari duplikasi
+                $usedIndices = array_merge($buyOneGetOneIndices, $thirtyPercentOffIndices);
+
+                // Jika ada duplikasi, cari indeks baru untuk 30% Off
+                foreach ($thirtyPercentOffIndices as $index) {
+                    while (in_array($index, $buyOneGetOneIndices)) {
+                        $index = array_rand($womenProductsArray, 1);
+                    }
+                    $usedIndices[] = $index;
+                }
+
+                $thirtyPercentOffIndices = array_unique($thirtyPercentOffIndices);
+            @endphp
+            @forelse ($womenProductsArray as $index => $product)
+                <div class="product-container tab" data-id="tab2">
+                    <div class="product-card">
+                        <img src="{{ asset('storage/' . $product['image']) }}" width="250" height="250" class="product-image mx-auto mb-4" />
+                        @if (in_array($index, $buyOneGetOneIndices))
+                            <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-yellow-500 text-center text-sm text-white">Buy 1 Get 1</span>
+                        @elseif (in_array($index, $thirtyPercentOffIndices))
+                            <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-yellow-500 text-center text-sm text-white">30% Off</span>
+                        @endif
+                        <h2 class="product-name text-black">{{ $product['name'] }}</h2>
+                        <div class="product-rating">
+                            <span class="rating-text">5.0</span>
+                            <span class="stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </span>
+                        </div>
+                        <p class="product-category">{{ $product['tag'] }}</p>
+                        <p class="product-price text-black">IDR {{ number_format($product['price'], 0, ',', '.') }}</p>
                         <input type="hidden" class="product-quantity" value="1">
                         <button class="add-to-cart bg-slate-900 hover:bg-black" data-product-id="{{ $product['id'] }}">
                             <i class="fas fa-shopping-cart"></i> Add to Cart
@@ -294,41 +405,62 @@
                 </div>
             @endforelse
 
-            @forelse ($products->where('category', 'Women') as $product)
-                <div class="product-container tab" data-id="tab2">
-                    <div class="product-card">
-                        <img src="{{ asset('storage/' . $product->image) }}" width="250" height="250" class='mx-auto mb-4' />
-                        <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-yellow-500 text-center text-sm text-white">Sale</span>
-                        <h2 class="product-name text-black">{{ $product->name }}</h2>
-                        <div class="product-rating">
-                            <span class="rating-text">5.0</span>
-                            <span class="stars">
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                                <i class="fas fa-star"></i>
-                            </span>
-                        </div>
-                        <p class="product-category">{{ $product->tag }}</p>
-                        <p class="product-price text-black">IDR {{ $product->price }}</p>
-                        <input type="hidden" class="product-quantity" value="1">
-                        <button class="add-to-cart bg-slate-900 hover:bg-black" data-product-id="{{ $product->id }}">
-                            <i class="fas fa-shopping-cart"></i> Add to Cart
-                        </button>
-                    </div>
-                </div>  
-            @empty
-            <div class="col-span-full text-center">
-                <p class="text-gray-500">No products available</p>
-            </div>
-            @endforelse
-            @forelse ($products->where('category', 'Kids') as $product)
+            @php
+                $kidsProducts = $products->where('category', 'Kids')->where('stocks', '>', 0);
+                $kidsProductsArray = $kidsProducts->toArray();
+
+                $totalProducts = count($kidsProductsArray);
+
+                shuffle($kidsProductsArray);
+
+                // Jumlah label Buy 1 Get 1 berdasarkan kelipatan 4
+                $buyOneGetOneCount = intdiv($totalProducts, 4);
+
+                // Jumlah label 30% Off berdasarkan kelipatan 6
+                $thirtyPercentOffCount = intdiv($totalProducts, 6);
+
+                $buyOneGetOneIndices = [];
+                $thirtyPercentOffIndices = [];
+
+                // Mendapatkan indeks untuk Buy 1 Get 1
+                if ($buyOneGetOneCount > 0) {
+                    $buyOneGetOneIndices = array_rand($kidsProductsArray, $buyOneGetOneCount);
+                    if (!is_array($buyOneGetOneIndices)) {
+                        $buyOneGetOneIndices = [$buyOneGetOneIndices];
+                    }
+                }
+
+                // Mendapatkan indeks untuk 30% Off
+                if ($thirtyPercentOffCount > 0) {
+                    $thirtyPercentOffIndices = array_rand($kidsProductsArray, $thirtyPercentOffCount);
+                    if (!is_array($thirtyPercentOffIndices)) {
+                        $thirtyPercentOffIndices = [$thirtyPercentOffIndices];
+                    }
+                }
+
+                // Menggabungkan indeks Buy 1 Get 1 dan 30% Off untuk menghindari duplikasi
+                $usedIndices = array_merge($buyOneGetOneIndices, $thirtyPercentOffIndices);
+
+                // Jika ada duplikasi, cari indeks baru untuk 30% Off
+                foreach ($thirtyPercentOffIndices as $index) {
+                    while (in_array($index, $buyOneGetOneIndices)) {
+                        $index = array_rand($kidsProductsArray, 1);
+                    }
+                    $usedIndices[] = $index;
+                }
+
+                $thirtyPercentOffIndices = array_unique($thirtyPercentOffIndices);
+            @endphp
+            @forelse ($kidsProductsArray as $index => $product)
                 <div class="product-container tab" data-id="tab3">
                     <div class="product-card">
-                        <img src="{{ asset('storage/' . $product->image) }}" width="250" height="250" class='mx-auto mb-4' />
-                        <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-blue-700 text-center text-sm text-white">Sale</span>
-                        <h2 class="product-name text-black">{{ $product->name }}</h2>
+                        <img src="{{ asset('storage/' . $product['image']) }}" width="250" height="250" class="product-image mx-auto mb-4" />
+                        @if (in_array($index, $buyOneGetOneIndices))
+                            <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-blue-700 text-center text-sm text-white">Buy 1 Get 1</span>
+                        @elseif (in_array($index, $thirtyPercentOffIndices))
+                            <span class="absolute top-0 left-0 w-28 translate-y-4 -translate-x-6 -rotate-45 bg-blue-700 text-center text-sm text-white">30% Off</span>
+                        @endif
+                        <h2 class="product-name text-black">{{ $product['name'] }}</h2>
                         <div class="product-rating">
                             <span class="rating-text">5.0</span>
                             <span class="stars">
@@ -339,25 +471,42 @@
                                 <i class="fas fa-star"></i>
                             </span>
                         </div>
-                        <p class="product-category">{{ $product->tag }}</p>
-                        <p class="product-price text-black">IDR {{ $product->price }}</p>
+                        <p class="product-category">{{ $product['tag'] }}</p>
+                        <p class="product-price text-black">IDR {{ number_format($product['price'], 0, ',', '.') }}</p>
                         <input type="hidden" class="product-quantity" value="1">
-                        <button class="add-to-cart bg-slate-900 hover:bg-black" data-product-id="{{ $product->id }}">
+                        <button class="add-to-cart bg-slate-900 hover:bg-black" data-product-id="{{ $product['id'] }}">
                             <i class="fas fa-shopping-cart"></i> Add to Cart
                         </button>
                     </div>
-                </div>   
+                </div>
             @empty
-            <div class="col-span-full text-center">
-                <p class="text-gray-500">No products available</p>
-            </div>
+                <div class="col-span-full text-center">
+                    <p class="text-gray-500">No products available</p>
+                </div>
             @endforelse
         </div>
     </div>
+    <footer class="bg-white rounded-lg shadow dark:bg-gray-900 m-4">
+        <div class="w-full max-w-screen-xl mx-auto p-4 md:py-8">
+            <hr class="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
+            <span class="text-sm text-gray-500 block text-center dark:text-gray-400">
+                © <?php echo date('Y'); ?> <p class="inline">Daud Anggoro Seto</p>. All Rights Reserved.
+            </span>
+        </div>
+    </footer>
+
+
    
     @section('scripts')
     
     <script type="text/javascript">
+        $("#cart-button").click(function(e) {
+            var isLoggedIn = @json($isLoggedIn);
+            if (!isLoggedIn) {
+                e.preventDefault();
+                alert('Silahkan login terlebih dahulu');
+            }
+        });
         $(document).ready(function(){ 
             $('.tab-cat').click(function(e){
             e.preventDefault();

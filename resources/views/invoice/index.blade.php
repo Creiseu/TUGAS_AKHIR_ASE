@@ -81,13 +81,6 @@
             </span>
 
             <div id="navbtns" class="flex items-center justify-end ml-0">
-                <!-- <a href="#" class="relative text-xl text-gray-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    <span class="absolute w-3 h-3 rounded-full bg-red-400 top-0 right-0"></span>
-                </a> -->
-
                 <div class="text-xl text-gray-600 ml-2 md:ml-8 relative">
                     <div class="cursor-pointer flex items-center justify-between gap-1"  id="usr_btn">
                     <x-app-layout></x-app-layout>
@@ -103,14 +96,6 @@
                     </div>
                     <!--/dropdown menu of user-->
                 </div>
-
-                <!-- <a href="#" class="relative text-xl text-gray-600 ml-2 md:ml-8">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span class="absolute w-2 h-2 rounded-full bg-red-400 top-1 right-1"></span>
-                </a> -->
             </div>
         </div>
         <!--/Navbar-->
@@ -121,29 +106,53 @@
             <div class="flex flex-col lg:flex-row lg:justify-between w-full">
                 <div class="w-full lg:w-1/2 mt-5 lg:pl-0 mb-20 lg:mb-0">
                     <div class="flex flex-col items-center lg:items-start">
-                        <div class="font-['MyCustomFont-Bold'] w-full h-96 rounded-md shadow-lg p-[30px]">
-                            @foreach ($invoiceData as $invoice)
-                                <h2>Checkout Date: {{ $invoice['created_at'] }}</h2>
-                                <div class="mb-4">
-                                    @foreach ($invoice['products'] as $product)
-                                        <div class="flex flex-row items-center justify-between mb-4">
-                                            @if($product['image'])
-                                                <img src="{{ asset('storage/' . $product['image']) }}" alt="{{ $product['name'] }}" class="w-24 h-auto mr-4">
-                                            @endif
-                                            <div class="flex-1">
-                                                <h2>{{ $product['name'] }}</h2>
-                                                <h2 class="text-gray-500">{{ $product['category'] }}</h2>
-                                            </div>
-                                            <div class="text-right">
-                                                <input type="number" value="{{ $product['quantity'] }}" disabled class="w-16 text-center border border-gray-300 rounded-md" />
-                                                <p class="text-[30px]">Rp. {{ number_format($product['price'], 0, ',', '.') }}</p>
+                        <div class="font-['MyCustomFont-Bold'] w-full">
+                            @foreach ($invoiceData->reverse() as $invoice) <!-- Menampilkan data terbaru di atas -->
+                                <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg mb-8">
+                                    <div class="p-8">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Checkout Date: {{ $invoice['created_at'] }}</h2>
+                                            <div>
+                                                <a href="{{ route('checkout.invoice.download', $invoice['checkout_id']) }}" class="flex items-center justify-center w-10 h-10 rounded-md bg-blue-500 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                                    </svg>
+                                                </a>                                                
                                             </div>
                                         </div>
-                                    @endforeach
-                                    <p class="text-[30px]">Total Checkout: Rp. {{ number_format($invoice['grandTotal'], 0, ',', '.') }}</p>
+                                        @foreach ($invoice['products'] as $product)
+                                            <div class="flex items-center justify-between mb-4">
+                                                @if($product['image'])
+                                                    <img src="{{ asset('storage/' . $product['image']) }}" alt="{{ $product['name'] }}" class="w-24 h-auto mr-4 rounded-md">
+                                                @endif
+                                                <div class="flex-1">
+                                                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">{{ $product['name'] }}</h2>
+                                                    <p class="text-sm text-gray-500 dark:text-gray-400">{{ $product['category'] }}</p>
+                                                </div>
+                                                <div class="text-right">
+                                                    <input type="number" value="{{ $product['quantity'] }}" disabled class="w-16 text-center border border-gray-300 rounded-md">
+                                                    <p class="text-lg font-semibold text-gray-900 dark:text-white mt-2">Rp. {{ number_format($product['price'], 0, ',', '.') }}</p>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                        <div class="flex items-start mt-6">
+                                            <div>
+                                                <p class="text-sm text-gray-900 dark:text-white">Ongkos Kirim:</p>
+                                                <p class="text-sm text-gray-900 dark:text-white">Rp. 5000</p>
+                                            </div>
+                                            <div class="ml-6">
+                                                <p class="text-sm text-gray-900 dark:text-white">Biaya Jasa Layanan Website:</p>
+                                                <p class="text-sm text-gray-900 dark:text-white">Rp. 1000</p>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between border-t border-gray-300 pt-4">
+                                            <p class="text-lg font-semibold text-gray-900 dark:text-white">Total Checkout:</p>
+                                            <p class="text-lg font-semibold text-gray-900 dark:text-white">Rp. {{ number_format($invoice['grandTotal'], 0, ',', '.') }}</p>
+                                        </div>
+                                    </div>
                                 </div>
                             @endforeach
-                        </div>                         
+                        </div>                                                                                                                                               
                     </div>
                 </div>
             </div>

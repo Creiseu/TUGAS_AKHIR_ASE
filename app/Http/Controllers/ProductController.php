@@ -26,16 +26,6 @@ class ProductController extends Controller
         $users = Auth::user()->name;
         return view('dashboard', compact('products','users'), ['cartQuantity' => $cartQuantity]);
     }
-
-    // public function getCartQuantity()
-    // {
-    //     $userId = Auth::id();
-    //     $cartQuantity = DB::table('carts')
-    //         ->where('created_by', $userId)
-    //         ->sum('quantity');
-
-    //     return response()->json(['quantity' => $cartQuantity]);
-    // }
     public function productCart()
     {
         // Ambil semua item di keranjang belanja untuk pengguna yang sedang login
@@ -241,17 +231,17 @@ class ProductController extends Controller
     }
     public function checkout(Request $request)
     {
-        // Validasi data yang masuk
+        // Validasi data yang masuk dari request Ajax
         $request->validate([
             'grandTotal' => 'required|numeric',
             'products' => 'required|array',
             'products.*.id' => 'required|integer',
-            'products.*.quantity' => 'required|integer',
+            'products.*.quantity' => 'required|integer|min:1', // Quantity harus minimal 1
         ]);
-    
+
         // Mulai transaksi database
         DB::beginTransaction();
-    
+
         try {
             // Simpan data ke tabel checkouts
             $checkout = new Checkout();
@@ -259,7 +249,7 @@ class ProductController extends Controller
             $checkout->created_by = Auth::id(); // ID pengguna yang login
             $checkout->updated_by = Auth::id(); // ID pengguna yang login
             $checkout->save();
-    
+
             // Simpan data produk ke tabel pivot_checkouts
             foreach ($request->products as $product) {
                 // Kurangi stok produk
@@ -268,31 +258,29 @@ class ProductController extends Controller
                     $productModel->stocks -= $product['quantity'];
                     $productModel->save();
                 }
-    
+
+                // Simpan data ke pivot_checkouts
                 PivotCheckout::create([
                     'checkout_id' => $checkout->id,
                     'product_id' => $product['id'],
                     'quantity' => $product['quantity'],
                 ]);
-    
-                // Hapus data produk dari tabel cart berdasarkan user yang login
-                Cart::where('product_id', $product['id'])
-                    ->where('created_by', Auth::id())
-                    ->delete();
             }
-    
+
+            // Hapus data dari tabel cart yang sesuai dengan pengguna yang sedang login
+            Cart::where('created_by', Auth::id())->delete();
+
             // Commit transaksi database
             DB::commit();
             
-            return response()->json(['success' => true]);
+            return response()->json(['success' => true, 'message' => 'Produk Anda telah berhasil di checkout!']);
         } catch (\Exception $e) {
             // Rollback transaksi database jika terjadi kesalahan
             DB::rollBack();
-    
+
             return response()->json(['success' => false, 'message' => 'Terjadi kesalahan saat checkout', 'error' => $e->getMessage()], 500);
         }
     }
-    
 
     public function invoice(): View
     {
@@ -304,6 +292,7 @@ class ProductController extends Controller
         // Mengambil data dalam format yang mudah digunakan di view
         $invoiceData = $checkouts->map(function ($checkout) {
             return [
+                'checkout_id' => $checkout->id,
                 'created_at' => Carbon::parse($checkout->created_at)->isoFormat('dddd, DD-MM-YYYY'),
                 'products' => $checkout->pivotCheckouts->map(function ($pivotCheckout) {
                     return [
@@ -320,6 +309,7 @@ class ProductController extends Controller
 
         return view('invoice.index', compact('invoiceData'));
     }
+
     
     public function deleteCart(Request $request)
     {
@@ -345,4 +335,20 @@ class ProductController extends Controller
         return view('admin.log', compact('pivotCheckouts'));
     }
 
+    // public function download($id)
+    // {
+    //     // Logic to fetch invoice data based on $id (checkout_id or other identifier)
+    //     $invoice = Checkout::find($id); // Misalnya Checkout::find($id) atau sesuai dengan model dan struktur data yang ada
+
+    //     if (!$invoice) {
+    //         abort(404);
+    //     }
+
+    //     // Load view for invoice PDF
+    //     $pdf = new Dompdf();
+    //     $pdf->loadView('invoice.pdf', compact('invoice'));
+
+    //     // Generate PDF and download
+    //     return $pdf->download('invoice-' . $invoice->id . '.pdf');
+    // }
 }
