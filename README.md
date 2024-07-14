@@ -7,9 +7,6 @@ Adding items to a shopping cart in a Laravel application involves creating a sys
 <pre> git clone https://github.com/Creiseu/TUGAS_AKHIR_ASE.git</pre>
 
 # Navigate to the Project Directory
-
-<pre> cd Laravel-11-Shopping-Cart </pre>
-
 # Install Dependencies
 
 <pre> composer install </pre>
