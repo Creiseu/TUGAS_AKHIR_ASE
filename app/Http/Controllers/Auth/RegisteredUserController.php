@@ -21,6 +21,10 @@ class RegisteredUserController extends Controller
     {
         return view('auth.register');
     }
+    public function regisadmin(): View
+    {
+        return view('auth.regisadmin');
+    }
 
     /**
      * Handle an incoming registration request.
@@ -35,16 +39,52 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        // Pengecekan email duplikat dengan userType user
+        $existingAdmin = User::where('email', $request->email)->where('userType', 'user')->first();
+
+        if ($existingAdmin) {
+            return redirect()->back()->withErrors(['email' => 'Email sudah terdaftar']);
+        }
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'userType' => 'user',
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect()->route('dashboard');
+    }
+    public function kirim(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
+
+        // Pengecekan email duplikat dengan userType admin
+        $existingAdmin = User::where('email', $request->email)->where('userType', 'admin')->first();
+
+        if ($existingAdmin) {
+            return redirect()->back()->withErrors(['email' => 'Email sudah terdaftar']);
+        }
+
+        $user = User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'userType' => 'admin',
+        ]);
+
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        return redirect()->route('admin.dashboard');
     }
 }

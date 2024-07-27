@@ -15,7 +15,12 @@ class PasswordResetLinkController extends Controller
      */
     public function create(): View
     {
-        return view('auth.forgot-password');
+        return view('auth.password_email'); 
+    }
+
+    public function buat(): View
+    {
+        return view('auth.admin.password_email'); 
     }
 
     /**

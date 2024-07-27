@@ -5,11 +5,11 @@
     <!-- Title -->
     <div class="text-center mb-6">
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-            Login
+            Admin Login
         </h1>
     </div>
 
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('admin') }}">
         @csrf
 
         <!-- Email Address -->
@@ -32,7 +32,7 @@
         </div>
 
         <div class="flex justify-end">
-            <a href="{{ route('register') }}" class="rounded-md py-2 text-blue-700 ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white">
+            <a href="{{ route('regisadmin') }}" class="rounded-md py-2 text-blue-700 ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white">
                 Dont Have An Account?
             </a>
         </div>
@@ -44,8 +44,8 @@
             </a>
 
             <div class="flex items-center">
-                @if (Route::has('password.request'))
-                    <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 mr-4" href="{{ route('password.request') }}">
+                @if (Route::has('admin.request'))
+                    <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800 mr-4" href="{{ route('admin.request') }}">
                         {{ __('Forgot your password?') }}
                     </a>
                 @endif

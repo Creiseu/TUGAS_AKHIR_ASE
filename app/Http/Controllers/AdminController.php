@@ -12,4 +12,8 @@ class AdminController extends Controller
         $product = Product::with('creator')->get();
         return view('admin.dashboard', compact('product'));
     }
+
+    public function admin(){
+        return view('auth.admin');
+    }
 }

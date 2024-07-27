@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\PasswordResetController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -16,14 +17,24 @@ Route::middleware('guest')->group(function () {
                 ->name('register');
 
     Route::post('register', [RegisteredUserController::class, 'store']);
+    Route::get('regisadmin', [RegisteredUserController::class, 'regisadmin'])
+                ->name('regisadmin');
+
+    Route::post('regisadmin', [RegisteredUserController::class, 'kirim']);
 
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
                 ->name('login');
 
     Route::post('login', [AuthenticatedSessionController::class, 'store']);
+    Route::get('admin', [AuthenticatedSessionController::class, 'buat'])
+                ->name('admin');
+
+    Route::post('admin', [AuthenticatedSessionController::class, 'kirim']);
 
     Route::get('forgot-password', [PasswordResetLinkController::class, 'create'])
                 ->name('password.request');
+    Route::get('admin/forgot-password', [PasswordResetLinkController::class, 'buat'])
+                ->name('admin.request');
 
     Route::post('forgot-password', [PasswordResetLinkController::class, 'store'])
                 ->name('password.email');
@@ -33,6 +44,15 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
                 ->name('password.store');
+
+    Route::post('password/process-email', [PasswordResetController::class, 'processEmail'])->name('password.processEmail');
+    Route::get('password/reset', [PasswordResetController::class, 'showResetForm'])->name('password.resetForm');
+    Route::post('password/reset', [PasswordResetController::class, 'resetPassword'])->name('password.resetPassword');
+
+    Route::post('admin/password/process-email', [PasswordResetController::class, 'processEmailAdmin'])->name('password.processEmail.admin');
+    Route::get('admin/password/reset', [PasswordResetController::class, 'showResetFormAdmin'])->name('password.resetForm.admin');
+    Route::post('admin/password/reset', [PasswordResetController::class, 'resetPasswordAdmin'])->name('password.resetPassword.admin');
+
 });
 
 Route::middleware('auth')->group(function () {

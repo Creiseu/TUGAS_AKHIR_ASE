@@ -20,28 +20,68 @@ class AuthenticatedSessionController extends Controller
         return view('auth.login', compact('isLoggedIn'));
     }
 
+    public function buat(): View
+    {   
+        $isLoggedIn = Auth::check();
+        return view('auth.admin', compact('isLoggedIn'));
+    }
+
     /**
      * Handle an incoming authentication request.
      */
     public function store(LoginRequest $request): RedirectResponse
-{
-    // Autentikasi pengguna
-    $request->authenticate();
+    {
+       // Autentikasi pengguna
+        $request->authenticate();
 
-    // Regenerate session setelah autentikasi berhasil
-    $request->session()->regenerate();
+        // Regenerate session setelah autentikasi berhasil
+        $request->session()->regenerate();
 
-    // Periksa apakah pengguna sudah login
-    $isLoggedIn = Auth::check();
+        // Periksa apakah pengguna sudah login
+        if (Auth::check()) {
+            // Periksa userType
+            if (Auth::user()->userType === 'user') {
+                // Redirect ke dashboard admin
+                return redirect()->route('dashboard');
+            } else {
+                // Hapus sesi untuk pengguna yang bukan admin
+                Auth::logout();
+                
+                // Redirect ke halaman login dengan pesan error
+                return redirect()->route('login')->withErrors(['email' => 'The access only for customer.']);
+            }
+        }
 
-    // Redirect ke dashboard admin jika userType adalah 'admin'
-    if (Auth::user()->userType == 'admin') {
-        return redirect()->route('admin.dashboard', compact('isLoggedIn'));
+        // Jika pengguna belum login, arahkan ke halaman login
+        return redirect()->route('login');
     }
 
-    // Redirect ke dashboard biasa jika bukan 'admin'
-    return redirect()->intended(route('dashboard'))->with('isLoggedIn', $isLoggedIn);}
+    public function kirim(LoginRequest $request): RedirectResponse
+    {
+        // Autentikasi pengguna
+        $request->authenticate();
 
+        // Regenerate session setelah autentikasi berhasil
+        $request->session()->regenerate();
+
+        // Periksa apakah pengguna sudah login
+        if (Auth::check()) {
+            // Periksa userType
+            if (Auth::user()->userType === 'admin') {
+                // Redirect ke dashboard admin
+                return redirect()->route('admin.dashboard');
+            } else {
+                // Hapus sesi untuk pengguna yang bukan admin
+                Auth::logout();
+                
+                // Redirect ke halaman login dengan pesan error
+                return redirect()->route('login')->withErrors(['email' => 'The access only for admin.']);
+            }
+        }
+
+        // Jika pengguna belum login, arahkan ke halaman login
+        return redirect()->route('login');
+    }
 
     /**
      * Destroy an authenticated session.
