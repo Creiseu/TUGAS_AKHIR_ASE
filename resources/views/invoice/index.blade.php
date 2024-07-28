@@ -44,6 +44,14 @@
                         </a>
                     </li>
                     <li>
+                        <a href="{{ route('transaction') }}" class="capitalize flex items-center justify-start py-4 pl-4 text-lg rounded-xl hover:bg-green-500 hover:text-white text-gray-500 transition font-semibold mb-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <span class="ml-2">Transaction</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="{{ route('invoice') }}" class="capitalize flex items-center justify-start py-4 pl-4 text-lg rounded-xl bg-green-500 text-white transition font-semibold mb-2">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -107,7 +115,7 @@
                 <div class="w-full lg:w-1/2 mt-5 lg:pl-0 mb-20 lg:mb-0">
                     <div class="flex flex-col items-center lg:items-start">
                         <div class="font-['MyCustomFont-Bold'] w-full">
-                            @foreach ($invoiceData->reverse() as $invoice) <!-- Menampilkan data terbaru di atas -->
+                            @foreach ($invoiceData->reverse() as $invoice)
                                 <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg mb-8">
                                     <div class="p-8">
                                         <div class="flex justify-between items-center mb-4">

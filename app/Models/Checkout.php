@@ -10,13 +10,14 @@ class Checkout extends Model
     use HasFactory;
     protected $fillable = [
         'grandTotal',
+        'payment_receipt',
         'created_by',
         'updated_by'
     ];
 
     public function pivotCheckouts()
     {
-        return $this->hasMany(PivotCheckout::class);
+        return $this->hasMany(PivotCheckout::class, 'checkout_id');
     }
 
     // Relasi ke user yang membuat checkout
@@ -26,8 +27,8 @@ class Checkout extends Model
     }
 
     public function createdBy()
-{
-    return $this->belongsTo(User::class, 'created_by');
-}
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 
 }

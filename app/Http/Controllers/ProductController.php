@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProductController extends Controller
 {
@@ -286,8 +287,15 @@ class ProductController extends Controller
     {
         $userId = Auth::id();
 
-        // Ambil data checkout berdasarkan user yang login
-        $checkouts = Checkout::where('created_by', $userId)->with(['pivotCheckouts.product'])->get();
+        // Ambil data checkout berdasarkan user yang login dan status pivot_checkouts adalah "complete"
+        $checkouts = Checkout::where('created_by', $userId)
+            ->whereHas('pivotCheckouts', function ($query) {
+                $query->where('status', 'completed');
+            })
+            ->with(['pivotCheckouts' => function ($query) {
+                $query->where('status', 'completed')->with('product');
+            }])
+            ->get();
 
         // Mengambil data dalam format yang mudah digunakan di view
         $invoiceData = $checkouts->map(function ($checkout) {
@@ -310,6 +318,7 @@ class ProductController extends Controller
         return view('invoice.index', compact('invoiceData'));
     }
 
+
     
     public function deleteCart(Request $request)
     {
@@ -326,29 +335,10 @@ class ProductController extends Controller
 
     public function logTransaction()
     {
-        // Ambil semua data pivot_checkouts berdasarkan pengguna yang sedang login
-        $userId = Auth::id();
-        $pivotCheckouts = PivotCheckout::with('checkout.createdBy', 'product')->get();
-
-        // dd($pivotCheckouts);
-
+        $pivotCheckouts = PivotCheckout::with('checkout.createdBy', 'product')
+            ->orderBy('created_at', 'desc') // Order by creation date in descending order
+            ->get();
+    
         return view('admin.log', compact('pivotCheckouts'));
     }
-
-    // public function download($id)
-    // {
-    //     // Logic to fetch invoice data based on $id (checkout_id or other identifier)
-    //     $invoice = Checkout::find($id); // Misalnya Checkout::find($id) atau sesuai dengan model dan struktur data yang ada
-
-    //     if (!$invoice) {
-    //         abort(404);
-    //     }
-
-    //     // Load view for invoice PDF
-    //     $pdf = new Dompdf();
-    //     $pdf->loadView('invoice.pdf', compact('invoice'));
-
-    //     // Generate PDF and download
-    //     return $pdf->download('invoice-' . $invoice->id . '.pdf');
-    // }
 }

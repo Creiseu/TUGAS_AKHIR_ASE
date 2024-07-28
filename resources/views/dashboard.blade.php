@@ -406,7 +406,7 @@
             @endforelse
 
             @php
-                $kidsProducts = $products->where('category', 'Kids')->where('stocks', '>', 0);
+                $kidsProducts = $products->where('category', 'Kid')->where('stocks', '>', 0);
                 $kidsProductsArray = $kidsProducts->toArray();
 
                 $totalProducts = count($kidsProductsArray);

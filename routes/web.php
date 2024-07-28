@@ -5,6 +5,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\MovieController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use App\Models\Product;
@@ -57,3 +58,8 @@ Route::middleware(['auth', 'UserMiddleware'])->group(function(){
 Route::middleware(['auth', 'AdminMiddleware'])->group(function(){
     Route::get('/admin/dashboard', [AdminController::class, 'index'])->name('admin.dashboard');
 });
+
+Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction');
+Route::post('/update-status/{id}', [TransactionController::class, 'updateStatus'])->name('update.status');
+Route::post('/transaction/update-status/{id}', [TransactionController::class, 'updateStatus'])->name('transaction.updateStatus');
+Route::post('/upload-receipt/{transactionId}', [TransactionController::class, 'uploadReceipt'])->name('upload.receipt');

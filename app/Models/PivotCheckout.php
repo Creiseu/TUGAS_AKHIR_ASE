@@ -12,17 +12,18 @@ class PivotCheckout extends Model
         'checkout_id',
         'product_id',
         'quantity',
+        'status',
         'created_by'
     ];
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id');
     }
 
     // Relasi ke tabel checkouts
     public function checkout()
     {
-        return $this->belongsTo(Checkout::class);
+        return $this->belongsTo(Checkout::class, 'checkout_id');
     }
 }
