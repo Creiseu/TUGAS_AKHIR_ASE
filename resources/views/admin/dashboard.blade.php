@@ -10,6 +10,7 @@
             <div class="py-12">
                 <a href="" class="py-2 px-4 bg-slate-700 text-white ml-[55px]">Data Produk</a>
                 <a href="{{ route('logTransaction') }}" class="py-2 px-4 bg-slate-700 text-white ml-[55px]">Log Transaksi</a>
+                <a href="{{ route('getAllUsers') }}" class="py-2 px-4 bg-slate-700 text-white ml-[55px]">Data User</a>
                 <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 shadow-[0_35px_60px_-15px_rgba(0,0,0,0.3)]">
                     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <div class="p-6 text-gray-900">

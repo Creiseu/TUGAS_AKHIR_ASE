@@ -151,11 +151,11 @@
                                                                 <dd class="font-medium text-gray-900 dark:text-white">Rp. {{ number_format($transaction['subtotal'], 0, ',', '.') }}</dd>
                                                             </dl>
                                                             <dl class="flex items-center justify-between gap-4">
-                                                                <dt class="font-normal text-gray-500 dark:text-gray-400">Ongkos Kirim</dt>
+                                                                <dt class="font-normal text-gray-500 dark:text-gray-400">Shipping Cost</dt>
                                                                 <dd class="text-base font-medium text-green-500">Rp. {{ number_format($transaction['shipping_cost'], 0, ',', '.') }}</dd>
                                                             </dl>
                                                             <dl class="flex items-center justify-between gap-4">
-                                                                <dt class="font-normal text-gray-500 dark:text-gray-400">Biaya Jasa Website</dt>
+                                                                <dt class="font-normal text-gray-500 dark:text-gray-400">Service Fee</dt>
                                                                 <dd class="font-medium text-gray-900 dark:text-white">Rp. {{ number_format($transaction['service_fee'], 0, ',', '.') }}</dd>
                                                             </dl>
                                                         </div>
@@ -184,27 +184,16 @@
                                                                     <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Wait until admin accepts your transaction</p>
                                                                 @endif
                                                                 @if ($transaction['payment_receipt'] === null)
-                                                                    <button onclick="openModal('modal-{{ $transaction['id'] }}')" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Upload Payment Receipt</button>
+                                                                    <button onclick="openModal({{ $transaction['id'] }})" class="bg-blue-500 text-white px-4 py-2 rounded-md mt-2">Upload Bukti Bayar</button>
                                                                 @endif
                                                             </li>
                                                             <!-- Modal for Payment Receipt -->
-                                                            <div id="modal-{{ $transaction['id'] }}" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-800 bg-opacity-75 hidden">
-                                                                <div class="bg-white p-6 rounded-lg shadow-lg w-1/3">
-                                                                    <div class="flex justify-between items-center">
-                                                                        <h3 class="text-lg font-semibold">Upload Payment Receipt</h3>
-                                                                        <button onclick="closeModal('modal-{{ $transaction['id'] }}')" class="text-gray-500 hover:text-gray-700">&times;</button>
-                                                                    </div>
-                                                                    <form action="{{ route('upload.receipt', $transaction['id']) }}" method="POST" enctype="multipart/form-data">
-                                                                        @csrf
-                                                                        <div class="mt-4">
-                                                                            <label for="receipt" class="block text-sm font-medium text-gray-700">Upload Image</label>
-                                                                            <input type="file" name="receipt" id="receipt" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" required>
-                                                                        </div>
-                                                                        <div class="mt-6 flex justify-end">
-                                                                            <button type="button" onclick="closeModal('modal-{{ $transaction['id'] }}')" class="mr-2 bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
-                                                                            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Send</button>
-                                                                        </div>
-                                                                    </form>
+                                                            <div id="uploadModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+                                                                <div class="bg-white p-6 rounded-lg">
+                                                                    <h2 class="text-lg font-bold mb-4">Upload Bukti Bayar</h2>
+                                                                    <input type="file" id="payment_receipt">
+                                                                    <button id="sendButton" class="bg-blue-500 text-white px-4 py-2 rounded-md mt-4">Send</button>
+                                                                    <button onclick="closeModal()" class="bg-red-500 text-white px-4 py-2 rounded-md mt-4">Cancel</button>
                                                                 </div>
                                                             </div>
                                                         @elseif ($transaction['status'] === 'packing')
@@ -224,8 +213,9 @@
                                                                     </svg>
                                                                 </span>
                                                                 <h4 class="mb-0.5 text-base font-semibold text-gray-900 dark:text-white">Your Order is Being Packed</h4>
+                                                                <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Wait until we packed your order</p>
                                                             </li>
-                                                        @elseif ($transaction['status'] === 'shipment')
+                                                        @elseif ($transaction['status'] === 'shipping')
                                                             <li class="mb-10 ms-6">
                                                                 <span class="absolute -start-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-700 ring-8 ring-white dark:bg-gray-700 dark:ring-gray-800">
                                                                     <svg class="h-4 w-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -241,16 +231,21 @@
                                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5" />
                                                                     </svg>
                                                                 </span>
-                                                                <h4 class="mb-0.5 text-base font-semibold text-blue-700 dark:text-white">Your Order is Being Packed</h4>
+                                                                <h4 class="mb-0.5 text-base font-semibold text-blue-700 dark:text-white">Your Order is already Packed</h4>
                                                             </li>
 
                                                             <li class="mb-10 ms-6">
                                                                 <span class="absolute -start-3 flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 ring-8 ring-white dark:bg-gray-700 dark:ring-gray-800">
-                                                                    <svg class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4.5 10 1.76 1.76 4.15-4.15m8.47 5.86h-7a2 2 0 0 0-2 2v5h9v-5a2 2 0 0 0-2-2zm-3-7a3 3 0 1 1 0 6 3 3 0 0 1 0-6z"/>
+                                                                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                                                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                                                        <g id="SVGRepo_iconCarrier">
+                                                                            <path fill-rule="evenodd" clip-rule="evenodd" d="M1 6C1 4.89543 1.89543 4 3 4H14C15.1046 4 16 4.89543 16 6V7H19C21.2091 7 23 8.79086 23 11V12V15V17C23.5523 17 24 17.4477 24 18C24 18.5523 23.5523 19 23 19H22H18.95C18.9828 19.1616 19 19.3288 19 19.5C19 20.8807 17.8807 22 16.5 22C15.1193 22 14 20.8807 14 19.5C14 19.3288 14.0172 19.1616 14.05 19H7.94999C7.98278 19.1616 8 19.3288 8 19.5C8 20.8807 6.88071 22 5.5 22C4.11929 22 3 20.8807 3 19.5C3 19.3288 3.01722 19.1616 3.05001 19H2H1C0.447715 19 0 18.5523 0 18C0 17.4477 0.447715 17 1 17V6ZM16.5 19C16.2239 19 16 19.2239 16 19.5C16 19.7761 16.2239 20 16.5 20C16.7761 20 17 19.7761 17 19.5C17 19.2239 16.7761 19 16.5 19ZM16.5 17H21V15V13H19C18.4477 13 18 12.5523 18 12C18 11.4477 18.4477 11 19 11H21C21 9.89543 20.1046 9 19 9H16V17H16.5ZM14 17H5.5H3V6H14V8V17ZM5 19.5C5 19.2239 5.22386 19 5.5 19C5.77614 19 6 19.2239 6 19.5C6 19.7761 5.77614 20 5.5 20C5.22386 20 5 19.7761 5 19.5Z" fill="#000000"></path> 
+                                                                        </g>
                                                                     </svg>
                                                                 </span>
-                                                                <h4 class="mb-0.5 text-base font-semibold text-gray-900 dark:text-white">Your Order is on the Way</h4>
+                                                                <h4 class="mb-0.5 text-base font-semibold text-gray-900 dark:text-white">Shipping to Hub</h4>
+                                                                <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Your order is being shipped to the nearest delivery hub.</p>
                                                             </li>
                                                         @else
                                                             <li class="mb-10 ms-6">
@@ -268,7 +263,7 @@
                                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5" />
                                                                     </svg>
                                                                 </span>
-                                                                <h4 class="mb-0.5 text-base font-semibold text-blue-700 dark:text-white">Your Order is Being Packed</h4>
+                                                                <h4 class="mb-0.5 text-base font-semibold text-blue-700 dark:text-white">Your Order is already Packed</h4>
                                                             </li>
 
                                                             <li class="mb-10 ms-6">
@@ -277,17 +272,69 @@
                                                                         <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5" />
                                                                     </svg>
                                                                 </span>
-                                                                <h4 class="mb-0.5 text-base font-semibold text-blue-700 dark:text-white">Your Order is on the Way</h4>
+                                                                <h4 class="mb-0.5 text-base font-semibold text-blue-700 dark:text-white">Shipping to Hub Completed</h4>
                                                             </li>
 
                                                             <li class="mb-10 ms-6">
-                                                                <span class="absolute -start-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-700 ring-8 ring-white dark:bg-gray-700 dark:ring-gray-800">
-                                                                    <svg class="h-4 w-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
-                                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 11.917 9.724 16.5 19 7.5" />
+                                                                <span class="absolute -start-3 flex h-6 w-6 items-center justify-center rounded-full bg-white ring-8 ring-white dark:bg-gray-700 dark:ring-gray-800">
+                                                                    <svg fill="#000000" height="200px" width="200px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 491.52 491.52" xml:space="preserve">
+                                                                        <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                                                                        <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                                                                        <g id="SVGRepo_iconCarrier">
+                                                                            <g>
+                                                                                <g>
+                                                                                    <path d="M102.4,368.64c-34.816,0-61.44,26.624-61.44,61.44c0,34.816,26.624,61.44,61.44,61.44s61.44-26.624,61.44-61.44 C163.84,395.264,137.216,368.64,102.4,368.64z M102.4,450.56c-12.288,0-20.48-8.192-20.48-20.48s8.192-20.48,20.48-20.48 c12.288,0,20.48,8.192,20.48,20.48S114.688,450.56,102.4,450.56z"></path>
+                                                                                </g>
+                                                                            </g>
+                                                                            <g>
+                                                                                <g>
+                                                                                    <path d="M430.08,368.64c-34.816,0-61.44,26.624-61.44,61.44c0,34.816,26.624,61.44,61.44,61.44c34.816,0,61.44-26.624,61.44-61.44 C491.52,395.264,464.896,368.64,430.08,368.64z M430.08,450.56c-12.288,0-20.48-8.192-20.48-20.48s8.192-20.48,20.48-20.48 s20.48,8.192,20.48,20.48S442.368,450.56,430.08,450.56z"></path>
+                                                                                </g>
+                                                                            </g>
+                                                                            <g>
+                                                                                <g>
+                                                                                    <path d="M81.92,163.84H20.48C8.192,163.84,0,172.032,0,184.32v102.4c0,12.288,8.192,20.48,20.48,20.48h61.44 c12.288,0,20.48-8.192,20.48-20.48v-102.4C102.4,172.032,94.208,163.84,81.92,163.84z M61.44,266.24H40.96V204.8h20.48V266.24z"></path>
+                                                                                </g>
+                                                                            </g>
+                                                                            <g>
+                                                                                <g>
+                                                                                    <path d="M184.32,0c-34.816,0-61.44,26.624-61.44,61.44s26.624,61.44,61.44,61.44s61.44-26.624,61.44-61.44S219.136,0,184.32,0z M184.32,81.92c-12.288,0-20.48-8.192-20.48-20.48c0-12.288,8.192-20.48,20.48-20.48s20.48,8.192,20.48,20.48 C204.8,73.728,196.608,81.92,184.32,81.92z"></path>
+                                                                                </g>
+                                                                            </g>
+                                                                            <g>
+                                                                                <g>
+                                                                                    <path d="M307.2,202.752V143.36c0-12.288-8.192-20.48-20.48-20.48h-45.056c-8.192-24.576-30.72-40.96-57.344-40.96 c-34.816,0-61.44,26.624-61.44,61.44v143.36c0,12.288,8.192,20.48,20.48,20.48h14.336c4.096,2.048,6.144,4.096,6.144,6.144 c0,8.192-2.048,16.384-4.096,24.576l-10.24,24.576c-6.144,12.288,4.096,26.624,18.432,26.624H286.72 c14.336,0,24.576-14.336,18.432-28.672l-40.96-108.544c-4.096-16.384-20.48-28.672-38.912-28.672h61.44 C299.008,223.232,307.2,215.04,307.2,202.752z M266.24,184.32H204.8c-12.288,0-20.48,8.192-20.48,20.48v40.96 c0,12.288,8.192,20.48,20.48,20.48h20.48L256,348.16h-57.344c4.096-12.288,6.144-24.576,6.144-34.816 c0-22.528-16.384-40.96-38.912-47.104h-2.048V143.36c0-12.288,8.192-20.48,20.48-20.48s20.48,8.192,20.48,20.48 c0,12.288,8.192,20.48,20.48,20.48h40.96V184.32z"></path>
+                                                                                </g>
+                                                                            </g>
+                                                                            <g>
+                                                                                <g>
+                                                                                    <path d="M415.744,247.808c-4.096-24.576-10.24-38.912-26.624-49.152V143.36c0-12.288-8.192-20.48-20.48-20.48h-81.92 c-12.288,0-20.48,8.192-20.48,20.48v61.44c0,12.288,8.192,20.48,20.48,20.48v122.88h-88.064 c4.096-12.288,6.144-24.576,6.144-34.816c0-22.528-16.384-40.96-38.912-47.104h-4.096H20.48C8.192,266.24,0,274.432,0,286.72 v102.4c0,34.816,26.624,61.44,61.44,61.44c12.288,0,20.48-8.192,20.48-20.48s8.192-20.48,20.48-20.48 c12.288,0,20.48,8.192,20.48,20.48s8.192,20.48,20.48,20.48h184.32c8.192,0,16.384-6.144,18.432-14.336 c22.528-59.392,47.104-88.064,69.632-88.064c18.432,0,30.72,6.144,38.912,14.336c12.288,12.288,34.816,4.096,34.816-14.336 v-12.288C489.472,292.864,458.752,256,415.744,247.808z M417.792,307.2c-43.008,0-77.824,36.864-104.448,102.4h-153.6 c-8.192-24.576-30.72-40.96-57.344-40.96c-24.576,0-45.056,14.336-55.296,34.816c-4.096-4.096-6.144-8.192-6.144-14.336V307.2 h116.736c4.096,2.048,6.144,4.096,6.144,6.144c0,8.192-2.048,16.384-4.096,24.576l-10.24,24.576 c-6.144,12.288,4.096,26.624,18.432,26.624H307.2c12.288,0,20.48-8.192,20.48-20.48V204.8c0-12.288-8.192-20.48-20.48-20.48 v-20.48h40.96v40.96v6.144c0,8.192,4.096,16.384,12.288,18.432c10.24,4.096,14.336,12.288,20.48,40.96 c2.048,10.24,10.24,16.384,20.48,16.384c18.432,0,32.768,10.24,40.96,22.528C436.224,307.2,425.984,307.2,417.792,307.2z"></path>
+                                                                                </g>
+                                                                            </g>
+                                                                        </g>
                                                                     </svg>
                                                                 </span>
-                                                                <h4 class="mb-0.5 text-base font-semibold text-blue-700 dark:text-white">Your Order has been Delivered</h4>
+                                                                <h4 class="mb-0.5 text-base font-semibold text-black dark:text-white">Your order is on its way with the courier</h4>
                                                             </li>
+                                                            <!-- Button to open modal -->
+                                                            <button id="open-modal" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">I Have Received My Order</button>
+
+                                                            <!-- Modal background -->
+                                                            <div id="modal-background" class="fixed inset-0 bg-gray-500 bg-opacity-75 z-50 hidden">
+                                                                <!-- Modal dialog -->
+                                                                <div class="flex items-center justify-center min-h-screen">
+                                                                    <div class="bg-white rounded-lg shadow-lg w-full max-w-md mx-4">
+                                                                        <div class="p-6">
+                                                                            <h3 class="text-lg font-semibold text-gray-800">Confirm Receipt</h3>
+                                                                            <p class="mt-2 text-gray-600">Are you sure you have received your order? This action will mark the order as completed.</p>
+                                                                            <div class="mt-4 flex justify-end space-x-2">
+                                                                                <button id="confirm-button" class="bg-blue-500 text-white px-4 py-2 rounded">Confirm</button>
+                                                                                <button id="cancel-button" class="bg-gray-200 text-gray-800 px-4 py-2 rounded">Cancel</button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         @endif
                                                     </ol>
                                                 </div>
@@ -367,6 +414,47 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
+            // Show the modal when the button is clicked
+            $('#open-modal').on('click', function() {
+                $('#modal-background').removeClass('hidden');
+            });
+
+            // Hide the modal when the cancel button is clicked
+            $('#cancel-button').on('click', function() {
+                $('#modal-background').addClass('hidden');
+            });
+
+            // Confirm button action
+            $('#confirm-button').on('click', function() {
+                // Replace this with the actual order ID or other identifying information
+                var orderId = 1; // Change this to the actual order ID
+
+                $.ajax({
+                    url: '/update-order-status', // Replace with your URL to handle the update
+                    type: 'POST',
+                    data: {
+                        _token: $('meta[name="csrf-token"]').attr('content'), // CSRF token for Laravel
+                        order_id: orderId,
+                        status: 'completed'
+                    },
+                    success: function(response) {
+                        // Handle success response
+                        alert('Order status updated to completed.');
+                        $('#modal-background').addClass('hidden');
+                        
+                        // Redirect to transaction route
+                        window.location.href = '/transaction'; // Adjust this URL as needed
+                    },
+                    error: function(xhr) {
+                        // Handle error response
+                        alert('Failed to update order status.');
+                    }
+                });
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
             $('#confirmOrderBtn').on('click', function(event) {
                 event.preventDefault();
                 $('#confirmModal').removeClass('hidden');
@@ -403,13 +491,47 @@
         }
     </script>
     <script>
-        function openModal(modalId) {
-            document.getElementById(modalId).classList.remove('hidden');
+        let transactionId;
+
+        function openModal(id) {
+            transactionId = id;
+            $('#uploadModal').removeClass('hidden');
         }
-    
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
+
+        function closeModal() {
+            $('#uploadModal').addClass('hidden');
         }
-    </script>   
+
+        $('#sendButton').click(function() {
+            let formData = new FormData();
+            let paymentReceipt = $('#payment_receipt')[0].files[0];
+
+            if (paymentReceipt) {
+                formData.append('payment_receipt', paymentReceipt);
+                formData.append('_token', '{{ csrf_token() }}');
+
+                // Log to see if the file is appended correctly
+                console.log('Payment Receipt:', paymentReceipt);
+
+                $.ajax({
+                    url: '/upload-receipt/' + transactionId,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        closeModal();
+                        location.reload();  // Update this line to refresh part of the page if needed
+                    },
+                    error: function(response) {
+                        console.error('Upload failed:', response);
+                        alert('Failed to upload receipt. Please try again.');
+                    }
+                });
+            } else {
+                alert('Please select a file to upload.');
+            }
+        });
+    </script>
 </body>
 </html>

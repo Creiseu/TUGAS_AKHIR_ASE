@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Checkout;
 use App\Models\PivotCheckout;
+use Illuminate\Support\Facades\Validator;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -95,23 +97,51 @@ class TransactionController extends Controller
     
         return response()->json(['success' => 'Order status updated successfully']);
     }
-
-    public function uploadReceipt(Request $request, $transactionId)
+    public function uploadReceipt(Request $request, $id)
+    {
+        $validator = Validator::make($request->all(), [
+            'payment_receipt' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:9048',
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+    
+        $transaction = Checkout::find($id);
+    
+        if ($transaction) {
+            $imageName = time().'.'.$request->payment_receipt->extension();
+            $request->payment_receipt->storeAs('public', $imageName);
+    
+            $transaction->payment_receipt = $imageName;
+            $transaction->save();
+    
+            return response()->json(['success' => 'Receipt uploaded successfully.']);
+        } else {
+            return response()->json(['error' => 'Transaction not found.'], 404);
+        }
+    }
+    public function completedStatus(Request $request)
     {
         $request->validate([
-            'receipt' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'order_id' => 'required|integer',
+            'status' => 'required|string'
         ]);
-
-        $image = $request->file('receipt');
-        $image->storeAs('public', $image->hashName());
-
-        $checkout = Checkout::find($transactionId);
-        $checkout->update([
-            'payment_receipt' => $image->hashName(),
-        ]);
-
-        return redirect()->back()->with('success', 'Payment receipt uploaded successfully.');
+    
+        $orderId = $request->input('order_id');
+        $status = $request->input('status');
+    
+        // Update the status in the pivot_checkouts table
+        DB::table('pivot_checkouts')
+            ->where('checkout_id', $orderId)
+            ->update(['status' => $status]);
+    
+        return response()->json(['success' => true]);
     }
-
-
+    public function getAllUsers()
+    {
+        $users = User::all(); // Mengambil semua data user
+    
+        return view('admin.users', compact('users')); // Mengirim data ke view
+    }
 }

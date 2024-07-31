@@ -170,7 +170,7 @@ class ProductController extends Controller
 
             //upload new image
             $image = $request->file('image');
-            $image->storeAs('public/storage', $image->hashName());
+            $image->storeAs('public', $image->hashName());
 
             //delete old image
             Storage::delete('public/storage/'.$product->image);
@@ -308,18 +308,16 @@ class ProductController extends Controller
                         'category' => $pivotCheckout->product->category,
                         'quantity' => $pivotCheckout->quantity,
                         'image'    => $pivotCheckout->product->image,
-                        'price'    => $pivotCheckout->product->price
+                        'price'    => $pivotCheckout->product->price,
+                        'status'   => $pivotCheckout->status,
                     ];
                 }),
                 'grandTotal' => $checkout->grandTotal,
             ];
         });
-
         return view('invoice.index', compact('invoiceData'));
     }
 
-
-    
     public function deleteCart(Request $request)
     {
         $request->validate([

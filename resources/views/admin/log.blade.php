@@ -10,6 +10,7 @@
             <div class="py-12">
                 <a href="{{ route('admin.dashboard') }}" class="py-2 px-4 bg-slate-700 text-white ml-[55px]">Data Produk</a>
                 <a href="" class="py-2 px-4 bg-slate-700 text-white ml-[55px]">Log Transaksi</a>
+                <a href="{{ route('getAllUsers') }}" class="py-2 px-4 bg-slate-700 text-white ml-[55px]">Data User</a>
                 <div class="font-['MyCustomFont-Bold']">
                     @foreach ($pivotCheckouts->groupBy('checkout_id') as $index => $items)
                         @php
@@ -38,7 +39,7 @@
                                 @endforeach
                             </div>
                     
-                            <div class="border-t pt-4 flex justify-between items-center">
+                            <div class="border-t flex justify-between items-center">
                                 <div class="mr-4">
                                     <p class="text-lg font-semibold text-gray-900">Subtotal: Rp. {{ number_format($subtotal, 0, ',', '.') }}</p>
                                     <p class="text-lg font-semibold text-gray-900">Total: Rp. {{ number_format($checkout->grandTotal, 0, ',', '.') }}</p>
@@ -46,7 +47,7 @@
                                 @if($checkout->payment_receipt)
                                     <div class="flex items-center mr-[400px]">
                                         <a href="{{ asset('storage/' . $checkout->payment_receipt) }}" class="text-blue-700 hover:text-blue-800 hover:underline flex items-center ml-4" target="_blank">
-                                            <svg fill="#1d45e7" height="200px" width="15px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve" stroke="#1d45e7"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M387,128c-11.8,0-21.3,9.5-21.3,21.3v213.3c0,58.9-47.7,106.7-106.7,106.7s-106.7-47.8-106.7-106.7v-256 c0-35.3,28.6-64,64-64s64,28.7,64,64V320c0,11.8-9.6,21.3-21.3,21.3s-21.3-9.5-21.3-21.3V149.3c0-11.8-9.6-21.3-21.3-21.3 c-11.8,0-21.3,9.5-21.3,21.3V320c0,35.4,28.6,64,64,64s64-28.6,64-64V106.7C323,47.8,275.2,0,216.3,0S109.7,47.8,109.7,106.7v256 c0,82.5,66.9,149.3,149.3,149.3s149.3-66.9,149.3-149.3V149.3C408.3,137.5,398.8,128,387,128z"></path> </g></svg>
+                                            <svg fill="#1d45e7" height="15px" width="15px" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 512 512" enable-background="new 0 0 512 512" xml:space="preserve" stroke="#1d45e7"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"> <path d="M387,128c-11.8,0-21.3,9.5-21.3,21.3v213.3c0,58.9-47.7,106.7-106.7,106.7s-106.7-47.8-106.7-106.7v-256 c0-35.3,28.6-64,64-64s64,28.7,64,64V320c0,11.8-9.6,21.3-21.3,21.3s-21.3-9.5-21.3-21.3V149.3c0-11.8-9.6-21.3-21.3-21.3 c-11.8,0-21.3,9.5-21.3,21.3V320c0,35.4,28.6,64,64,64s64-28.6,64-64V106.7C323,47.8,275.2,0,216.3,0S109.7,47.8,109.7,106.7v256 c0,82.5,66.9,149.3,149.3,149.3s149.3-66.9,149.3-149.3V149.3C408.3,137.5,398.8,128,387,128z"></path> </g></svg>
                                             <span class="ml-2">{{$checkout->payment_receipt}}</span>
                                         </a>
                                     </div>
