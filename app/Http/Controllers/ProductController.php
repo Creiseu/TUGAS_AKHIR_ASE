@@ -265,6 +265,8 @@ class ProductController extends Controller
                     'checkout_id' => $checkout->id,
                     'product_id' => $product['id'],
                     'quantity' => $product['quantity'],
+                    'order_track' => $request->order_track,
+                    'payment_status' => $request->payment_status
                 ]);
             }
 
@@ -290,10 +292,10 @@ class ProductController extends Controller
         // Ambil data checkout berdasarkan user yang login dan status pivot_checkouts adalah "complete"
         $checkouts = Checkout::where('created_by', $userId)
             ->whereHas('pivotCheckouts', function ($query) {
-                $query->where('status', 'completed');
+                $query->where('order_track', 'completed');
             })
             ->with(['pivotCheckouts' => function ($query) {
-                $query->where('status', 'completed')->with('product');
+                $query->where('order_track', 'completed')->with('product');
             }])
             ->get();
 
@@ -309,7 +311,7 @@ class ProductController extends Controller
                         'quantity' => $pivotCheckout->quantity,
                         'image'    => $pivotCheckout->product->image,
                         'price'    => $pivotCheckout->product->price,
-                        'status'   => $pivotCheckout->status,
+                        'order_track'   => $pivotCheckout->order_track,
                     ];
                 }),
                 'grandTotal' => $checkout->grandTotal,

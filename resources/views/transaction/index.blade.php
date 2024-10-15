@@ -172,7 +172,7 @@
                                                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Order history</h3>
 
                                                     <ol class="relative ms-3 border-s border-gray-200 dark:border-gray-700">
-                                                        @if ($transaction['status'] === 'pending')
+                                                        @if ($transaction['order_track'] === 'pending')
                                                             <li class="mb-10 ms-6">
                                                                 <span class="absolute -start-3 flex h-6 w-6 items-center justify-center rounded-full bg-gray-100 ring-8 ring-white dark:bg-gray-700 dark:ring-gray-800">
                                                                     <svg class="h-4 w-4 text-gray-500 dark:text-gray-400" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -180,7 +180,9 @@
                                                                     </svg>
                                                                 </span>
                                                                 <h4 class="mb-0.5 text-base font-semibold text-gray-900 dark:text-white">Your Transaction is Pending</h4>
-                                                                @if ($transaction['payment_receipt'])
+                                                                @if ($transaction['payment_receipt'] && $transaction['payment_status'] == 'unsettled')
+                                                                    <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Payment has not been paid in full</p>
+                                                                @else
                                                                     <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Wait until admin accepts your transaction</p>
                                                                 @endif
                                                                 @if ($transaction['payment_receipt'] === null)
@@ -196,7 +198,7 @@
                                                                     <button onclick="closeModal()" class="bg-red-500 text-white px-4 py-2 rounded-md mt-4">Cancel</button>
                                                                 </div>
                                                             </div>
-                                                        @elseif ($transaction['status'] === 'packing')
+                                                        @elseif ($transaction['order_track'] === 'packing')
                                                             <li class="mb-10 ms-6">
                                                                 <span class="absolute -start-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-700 ring-8 ring-white dark:bg-gray-700 dark:ring-gray-800">
                                                                     <svg class="h-4 w-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -215,7 +217,7 @@
                                                                 <h4 class="mb-0.5 text-base font-semibold text-gray-900 dark:text-white">Your Order is Being Packed</h4>
                                                                 <p class="text-sm font-normal text-gray-500 dark:text-gray-400">Wait until we packed your order</p>
                                                             </li>
-                                                        @elseif ($transaction['status'] === 'shipping')
+                                                        @elseif ($transaction['order_track'] === 'shipping')
                                                             <li class="mb-10 ms-6">
                                                                 <span class="absolute -start-3 flex h-6 w-6 items-center justify-center rounded-full bg-blue-700 ring-8 ring-white dark:bg-gray-700 dark:ring-gray-800">
                                                                     <svg class="h-4 w-4 text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
@@ -330,6 +332,7 @@
                                                                             <div class="mt-4 flex justify-end space-x-2">
                                                                                 <button id="confirm-button" class="bg-blue-500 text-white px-4 py-2 rounded">Confirm</button>
                                                                                 <button id="cancel-button" class="bg-gray-200 text-gray-800 px-4 py-2 rounded">Cancel</button>
+                                                                                <input type="hidden" class="checkout-id" value="{{ $transaction['id'] }}"> 
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -427,15 +430,14 @@
             // Confirm button action
             $('#confirm-button').on('click', function() {
                 // Replace this with the actual order ID or other identifying information
-                var orderId = 1; // Change this to the actual order ID
-
+                var orderId = $(this).siblings('.checkout-id').val();
                 $.ajax({
-                    url: '/update-order-status', // Replace with your URL to handle the update
+                    url: '/update-order-status/'+ orderId, // Replace with your URL to handle the update
                     type: 'POST',
                     data: {
                         _token: $('meta[name="csrf-token"]').attr('content'), // CSRF token for Laravel
                         order_id: orderId,
-                        status: 'completed'
+                        trackOrder: 'completed'
                     },
                     success: function(response) {
                         // Handle success response
@@ -448,38 +450,6 @@
                     error: function(xhr) {
                         // Handle error response
                         alert('Failed to update order status.');
-                    }
-                });
-            });
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
-            $('#confirmOrderBtn').on('click', function(event) {
-                event.preventDefault();
-                $('#confirmModal').removeClass('hidden');
-                $('#confirmModal').data('transaction-id', $(this).data('transaction-id'));
-            });
-    
-            $('#cancelBtn').on('click', function() {
-                $('#confirmModal').addClass('hidden');
-            });
-    
-            $('#confirmBtn').on('click', function() {
-                var transactionId = $('#confirmModal').data('transaction-id');
-                $.ajax({
-                    url: "{{ url('transaction/update-status') }}/" + transactionId,
-                    type: 'POST',
-                    data: {
-                        _token: "{{ csrf_token() }}",
-                        status: 'completed'
-                    },
-                    success: function(response) {
-                        $('#confirmModal').addClass('hidden');
-                        window.location.href = "{{ route('transaction') }}";
-                    },
-                    error: function(xhr) {
-                        console.log(xhr.responseText);
                     }
                 });
             });

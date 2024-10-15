@@ -4,7 +4,7 @@
 
         <!-- Password -->
         <div class="mt-4">
-            <x-input-label for="password" :value="__('New Password')" />
+            <x-input-label for="password" :value="__('Kata sandi baru untuk user')" />
 
             <x-text-input id="password" class="block mt-1 w-full"
                             type="password"
@@ -16,7 +16,7 @@
 
         <!-- Confirm Password -->
         <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
+            <x-input-label for="password_confirmation" :value="__('Tulis ulang kata sandi')" />
 
             <x-text-input id="password_confirmation" class="block mt-1 w-full"
                             type="password"
@@ -27,7 +27,7 @@
 
         <div class="flex items-center justify-end mt-4">
             <x-primary-button>
-                {{ __('Reset Password') }}
+                {{ __('Reset Kata Sandi') }}
             </x-primary-button>
         </div>
     </form>

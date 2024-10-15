@@ -306,11 +306,12 @@
                         _token: '{{ csrf_token() }}',
                         userId: userId,
                         products: products,
-                        subtotal: parseInt(subtotal), // Pastikan subtotal dikirim sebagai angka
+                        subtotal: parseInt(subtotal),
                         ongkosKirim: ongkosKirim,
                         biayaJasa: biayaJasa,
-                        status: 'pending',
-                        grandTotal: parseInt(grandTotal) // Pastikan grandTotal dikirim sebagai angka
+                        order_track: 'pending',
+                        payment_status: 'unsettled',
+                        grandTotal: parseInt(grandTotal) 
                     },
                     success: function(response) {
                         alert('Produk Anda telah di checkout');

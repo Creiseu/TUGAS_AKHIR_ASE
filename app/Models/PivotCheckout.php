@@ -12,7 +12,8 @@ class PivotCheckout extends Model
         'checkout_id',
         'product_id',
         'quantity',
-        'status',
+        'track_order',
+        'payment_status',
         'created_by'
     ];
 

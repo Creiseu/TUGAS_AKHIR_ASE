@@ -16,7 +16,8 @@ return new class extends Migration
             $table->foreignId('checkout_id')->constrained('checkouts');
             $table->foreignId('product_id')->constrained('products');
             $table->integer('quantity');
-            $table->enum('status', ['pending', 'packing', 'shipping', 'delivered','completed']);
+            $table->enum('order_track', ['pending', 'packing', 'shipping', 'delivered','completed']);
+            $table->enum('payment_status', ['settled', 'unsettled'])->nullable();
             $table->timestamps();
         });
     }

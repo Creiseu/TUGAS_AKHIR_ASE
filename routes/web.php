@@ -60,8 +60,9 @@ Route::middleware(['auth', 'AdminMiddleware'])->group(function(){
 });
 
 Route::get('/transaction', [TransactionController::class, 'index'])->name('transaction');
-Route::post('/update-status/{id}', [TransactionController::class, 'updateStatus'])->name('update.status');
+Route::post('/update-order/{id}', [TransactionController::class, 'updateOrder'])->name('update.order');
 Route::post('/transaction/update-status/{id}', [TransactionController::class, 'updateStatus'])->name('transaction.updateStatus');
 Route::post('/upload-receipt/{id}', [TransactionController::class, 'uploadReceipt']);
-Route::post('/update-order-status', [TransactionController::class, 'completedStatus']);
+Route::post('/update-order-status/{id}', [TransactionController::class, 'completedStatus']);
 Route::get('/admin/dashboard/all-users', [TransactionController::class, 'getAllUsers'])->name('getAllUsers');
+Route::post('/update-status/{id}', [TransactionController::class, 'updateStatus'])->name('update.status');

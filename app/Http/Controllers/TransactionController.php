@@ -23,14 +23,14 @@ class TransactionController extends Controller
         $transactions = Checkout::with(['pivotCheckouts', 'user'])
             ->where('created_by', $userId)
             ->whereHas('pivotCheckouts', function($query) {
-                $query->where('status', '!=', 'completed');
+                $query->where('order_track', '!=', 'completed');
             })
             ->get();
     
         $orderStatus = Checkout::with(['pivotCheckouts', 'user'])
             ->where('created_by', $userId)
             ->whereHas('pivotCheckouts', function($query) {
-                $query->where('status', '=', 'completed');
+                $query->where('order_track', '=', 'completed');
             })
             ->get();
     
@@ -55,7 +55,8 @@ class TransactionController extends Controller
                 'service_fee' => 1000,
                 'payment_receipt' => $checkout->payment_receipt,
                 'grand_total' => $checkout->grandTotal,
-                'status' => $checkout->pivotCheckouts->first()->status ?? 'pending',
+                'order_track' => $checkout->pivotCheckouts->first()->order_track ?? 'pending',
+                'payment_status' => $checkout->pivotCheckouts->first()->payment_status ?? 'unsettled',
                 'created_by' => $checkout->created_by,
             ];
         });
@@ -80,18 +81,18 @@ class TransactionController extends Controller
                 'shipping_cost' => 5000,
                 'service_fee' => 1000,
                 'grand_total' => $checkout->grandTotal,
-                'status' => $checkout->pivotCheckouts->first()->status ?? 'completed',
+                'order_track' => $checkout->pivotCheckouts->first()->status ?? 'completed',
                 'created_by' => $checkout->created_by,
             ];
         });
     
         return view('transaction.index', compact('transactionsData', 'completedTransactions'));
     }    
-    public function updateStatus(Request $request, $id)
+    public function updateOrder(Request $request, $id)
     {
         $checkout = Checkout::find($id);
         foreach ($checkout->pivotCheckouts as $pivotCheckout) {
-            $pivotCheckout->status = $request->status;
+            $pivotCheckout->order_track = $request->trackOrder;
             $pivotCheckout->save();
         }
     
@@ -125,16 +126,16 @@ class TransactionController extends Controller
     {
         $request->validate([
             'order_id' => 'required|integer',
-            'status' => 'required|string'
+            'trackOrder' => 'required|string'
         ]);
     
         $orderId = $request->input('order_id');
-        $status = $request->input('status');
+        $trackOrder = $request->input('trackOrder');
     
         // Update the status in the pivot_checkouts table
         DB::table('pivot_checkouts')
             ->where('checkout_id', $orderId)
-            ->update(['status' => $status]);
+            ->update(['order_track' => $trackOrder]);
     
         return response()->json(['success' => true]);
     }
@@ -143,5 +144,16 @@ class TransactionController extends Controller
         $users = User::all(); // Mengambil semua data user
     
         return view('admin.users', compact('users')); // Mengirim data ke view
+    }
+
+    public function updateStatus(Request $request, $id)
+    {
+        $checkout = Checkout::find($id);
+        foreach ($checkout->pivotCheckouts as $pivotCheckout) {
+            $pivotCheckout->payment_status = $request->paymentStatus;
+            $pivotCheckout->save();
+        }
+    
+        return response()->json(['success' => 'Order status updated successfully']);
     }
 }
